@@ -1,20 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../theme/app_theme.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/ride_provider.dart';
-import '../booking/destination_search_screen.dart';
-import '../booking/schedule_ride_screen.dart';
-import '../booking/qr_scan_screen.dart';
-import '../features/power_pass_screen.dart';
-import '../features/refer_earn_screen.dart';
-import '../features/safety_toolkit_screen.dart';
-import '../features/support_screen.dart';
-import '../features/language_screen.dart';
-import '../features/wallet_screen.dart';
-import '../features/ride_history_screen.dart';
-import '../features/profile_screen.dart';
-import '../tracking/searching_captain_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,299 +7,84 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _pickupController = TextEditingController();
-  final TextEditingController _dropController = TextEditingController();
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  int _currentNavIndex = 0;
+  String _selectedVehicle = 'Bike';
+  late AnimationController _pulseController;
 
   @override
   void initState() {
     super.initState();
-    final ride = Provider.of<RideProvider>(context, listen: false);
-    _pickupController.text = ride.pickup.address;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ride.fetchLiveLocation().then((_) {
-        if (mounted) {
-          _pickupController.text = ride.pickup.address;
-        }
-      });
-    });
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _pickupController.dispose();
-    _dropController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
-    final ride = Provider.of<RideProvider>(context);
-    final distance = ride.destination?.distanceKm ?? 4.0;
-
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(5),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.black,
-              ),
-              child: const Icon(Icons.electric_bolt_rounded, color: Color(0xFFFFC107), size: 18),
-            ),
-            const SizedBox(width: 8),
-            const Text('Flash2Ride', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2, color: AppTheme.textBlack)),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.qr_code_scanner_rounded, color: AppTheme.primaryGreen),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const QrScanScreen())),
-          ),
-          IconButton(
-            icon: const Icon(Icons.account_balance_wallet_rounded, color: AppTheme.primaryGreen),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const WalletScreen())),
-          ),
-        ],
-      ),
-      drawer: Drawer(
-        backgroundColor: Colors.white,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(color: Color(0xFFF1F5F9)),
-              currentAccountPicture: Container(
-                decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.black),
-                child: const Center(child: Icon(Icons.electric_bolt_rounded, color: Color(0xFFFFC107), size: 36)),
-              ),
-              accountName: Text(auth.currentUser?.name ?? 'Flash2Ride User', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textBlack)),
-              accountEmail: Text('+91 ${auth.currentUser?.phone ?? "9876543210"}', style: const TextStyle(color: AppTheme.textGrey)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.history_rounded, color: AppTheme.primaryGreen),
-              title: const Text('My Rides & Invoices', style: TextStyle(color: AppTheme.textBlack, fontWeight: FontWeight.w600)),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const RideHistoryScreen())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.card_membership_rounded, color: Colors.amber),
-              title: const Text('Flash Power Pass (Save 30%)', style: TextStyle(color: AppTheme.textBlack, fontWeight: FontWeight.w600)),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const PowerPassScreen())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.card_giftcard_rounded, color: AppTheme.primaryGreen),
-              title: const Text('Refer & Earn â‚¹50', style: TextStyle(color: AppTheme.textBlack, fontWeight: FontWeight.w600)),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ReferEarnScreen())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.shield_rounded, color: Colors.redAccent),
-              title: const Text('Safety Toolkit & SOS', style: TextStyle(color: AppTheme.textBlack, fontWeight: FontWeight.w600)),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const SafetyToolkitScreen())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.headset_mic_rounded, color: AppTheme.primaryGreen),
-              title: const Text('24/7 Help & Support', style: TextStyle(color: AppTheme.textBlack, fontWeight: FontWeight.w600)),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const SupportScreen())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.language_rounded, color: AppTheme.primaryGreen),
-              title: const Text('Language (à°­à°¾à°·)', style: TextStyle(color: AppTheme.textBlack, fontWeight: FontWeight.w600)),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const LanguageScreen())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_rounded, color: AppTheme.primaryGreen),
-              title: const Text('Profile Settings', style: TextStyle(color: AppTheme.textBlack, fontWeight: FontWeight.w600)),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ProfileScreen())),
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: Colors.white,
+      drawer: _buildDrawer(),
       body: Stack(
         children: [
-          // Simulated Interactive Street Map
+          // -------------------------------------------------------------
+          // 1. LAYER 1: Realistic Street Map of Nellore with River & Pins
+          // -------------------------------------------------------------
           Positioned.fill(
-            child: Container(
-              color: const Color(0xFFE2E8F0),
-              child: Stack(
-                children: [
-                  Positioned(left: 0, right: 0, top: 220, child: Container(height: 18, color: Colors.white)),
-                  Positioned(left: 0, right: 0, top: 380, child: Container(height: 24, color: Colors.white)),
-                  Positioned(top: 0, bottom: 0, left: 140, child: Container(width: 20, color: Colors.white)),
-                  Positioned(top: 0, bottom: 0, right: 90, child: Container(width: 18, color: Colors.white)),
-
-                  // Nearby Flash Captains moving on streets
-                  Positioned(
-                    top: 240,
-                    left: 125,
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.black),
-                          child: const Icon(Icons.two_wheeler_rounded, size: 16, color: Color(0xFFFFC107)),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
-                          child: const Text('2 min', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    top: 360,
-                    right: 80,
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.black),
-                          child: const Icon(Icons.electric_rickshaw_rounded, size: 16, color: Color(0xFFF59E0B)),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
-                          child: const Text('3 min', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black)),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Center User GPS Location Pin
-                  Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppTheme.primaryGreen.withValues(alpha: 0.2),
-                            border: Border.all(color: AppTheme.primaryGreen, width: 2),
-                          ),
-                          child: const Icon(Icons.my_location, color: AppTheme.primaryGreen, size: 28),
-                        ),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 2))],
-                            border: Border.all(color: AppTheme.borderGrey),
-                          ),
-                          child: Text(
-                            ride.isDetectingLocation ? 'Locating GPS...' : ride.pickup.title,
-                            style: const TextStyle(color: AppTheme.textBlack, fontSize: 12, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Floating GPS Recenter Button
-                  Positioned(
-                    right: 16,
-                    bottom: 260,
-                    child: FloatingActionButton.small(
-                      backgroundColor: Colors.white,
-                      foregroundColor: AppTheme.primaryGreen,
-                      onPressed: () {
-                        ride.fetchLiveLocation();
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Live GPS Location Updated!')));
-                      },
-                      child: const Icon(Icons.gps_fixed),
-                    ),
-                  ),
-                ],
-              ),
+            child: CustomPaint(
+              painter: _NelloreMapPainter(pulseAnimation: _pulseController),
             ),
           ),
 
-          // Top Interactive Dual Search Card (Direct Typing & GPS Picker)
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+          // Current Location Tooltip Bubble on Map (Image 3)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 95,
+            left: 0,
+            right: 0,
+            child: Center(
               child: Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, 4))],
-                  border: Border.all(color: AppTheme.borderGrey),
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
-                child: Column(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.circle, color: AppTheme.primaryGreen, size: 14),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            controller: _pickupController,
-                            style: const TextStyle(color: AppTheme.textBlack, fontSize: 13, fontWeight: FontWeight.bold),
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                              hintText: 'Enter Pickup Location...',
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              fillColor: Colors.transparent,
-                            ),
-                            onSubmitted: (val) {
-                              if (val.trim().isNotEmpty) ride.setPickupManual(val.trim());
-                            },
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Detect Live GPS',
-                          icon: const Icon(Icons.my_location, color: AppTheme.primaryGreen, size: 20),
-                          onPressed: () {
-                            ride.fetchLiveLocation().then((_) {
-                              _pickupController.text = ride.pickup.address;
-                            });
-                          },
-                        ),
-                      ],
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF0058FF),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.location_on, color: Colors.white, size: 14),
                     ),
-                    const Divider(height: 12, color: AppTheme.borderGrey),
-                    Row(
+                    const SizedBox(width: 8),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.location_on, color: Colors.redAccent, size: 18),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            controller: _dropController,
-                            style: const TextStyle(color: AppTheme.textBlack, fontSize: 13, fontWeight: FontWeight.bold),
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                              hintText: 'Where to? (e.g. RTC Bus Stand, Nellore)',
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              fillColor: Colors.transparent,
-                            ),
-                            onTap: () async {
-                              await Navigator.push(context, MaterialPageRoute(builder: (c) => const DestinationSearchScreen()));
-                              if (ride.destination != null) {
-                                _dropController.text = ride.destination!.title;
-                              }
-                            },
-                            onSubmitted: (val) {
-                              if (val.trim().isNotEmpty) ride.setDestinationManual(val.trim());
-                            },
-                          ),
+                        Text(
+                          'Current Location',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0058FF)),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.search, color: AppTheme.primaryGreen, size: 20),
-                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const DestinationSearchScreen())),
+                        Text(
+                          'Nellore, Andhra Pradesh',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF475569), fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),
@@ -325,89 +94,404 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Bottom Ride Selection Panel with Live Fares & Book Button
-          Align(
-            alignment: Alignment.bottomCenter,
+          // Floating GPS Target Button on top right
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 95,
+            right: 16,
             child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, -4))],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Choose a Ride', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppTheme.textBlack)),
-                      TextButton.icon(
-                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ScheduleRideScreen())),
-                        icon: const Icon(Icons.schedule, size: 16, color: AppTheme.primaryGreen),
-                        label: const Text('Schedule', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 12)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  SizedBox(
-                    height: 105,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: ride.availableVehicles.length,
-                      itemBuilder: (context, index) {
-                        final v = ride.availableVehicles[index];
-                        final isSelected = v.type == ride.selectedOption?.type;
-                        final fare = v.calculateFare(distance) - ride.discount;
-
-                        return GestureDetector(
-                          onTap: () => ride.selectVehicle(v),
-                          child: Container(
-                            width: 100,
-                            margin: const EdgeInsets.only(right: 10, top: 4, bottom: 4),
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppTheme.primaryGreen.withValues(alpha: 0.1) : Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))],
-                              border: Border.all(color: isSelected ? AppTheme.primaryGreen : AppTheme.borderGrey, width: isSelected ? 2 : 1),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(v.icon, size: 30, color: isSelected ? AppTheme.primaryGreen : v.iconColor),
-                                const SizedBox(height: 4),
-                                Text(v.title.replaceFirst('Flash ', ''), style: const TextStyle(color: AppTheme.textBlack, fontSize: 12, fontWeight: FontWeight.bold)),
-                                Text('â‚¹${fare.toStringAsFixed(0)}', style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 13, fontWeight: FontWeight.w900)),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        ride.startSearching();
-                        Navigator.push(context, MaterialPageRoute(builder: (c) => const SearchingCaptainScreen()));
-                      },
-                      child: Text(
-                        'Book ${ride.selectedOption?.title ?? "Ride"} â€¢ â‚¹${(ride.selectedOption?.calculateFare(distance) ?? 45.0).toStringAsFixed(0)}',
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
+              child: IconButton(
+                icon: const Icon(Icons.my_location_rounded, color: Color(0xFF0058FF), size: 22),
+                onPressed: () {},
+              ),
+            ),
+          ),
+
+          // -------------------------------------------------------------
+          // 2. LAYER 2: Seamless Top Header with Logo
+          // -------------------------------------------------------------
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _buildTopHeader(),
+          ),
+
+          // -------------------------------------------------------------
+          // 3. LAYER 3: Official Bottom Floating Card (Images 1 & 2 Combined!)
+          // -------------------------------------------------------------
+          Positioned(
+            left: 14,
+            right: 14,
+            bottom: 12,
+            child: _buildWhereToAndVehiclesCard(),
+          ),
+        ],
+      ),
+
+      // -------------------------------------------------------------
+      // 4. LAYER 4: Bottom Navigation Bar (Image 3)
+      // -------------------------------------------------------------
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  // Official Seamless Header with Eagle Logo
+  Widget _buildTopHeader() {
+    const Color brandRoyalBlue = Color(0xFF0058FF);
+
+    return Container(
+      width: double.infinity,
+      color: brandRoyalBlue,
+      child: SafeArea(
+        bottom: false,
+        child: Container(
+          height: 70,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Builder(
+                builder: (ctx) => IconButton(
+                  icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 32),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () => Scaffold.of(ctx).openDrawer(),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/logo_center.png',
+                    height: 56,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.network(
+                        'logo_center.png',
+                        height: 56,
+                        fit: BoxFit.contain,
+                        errorBuilder: (ctx, err, st) => const Text(
+                          'Flash2Ride',
+                          style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 28),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Official Where to? & 4 Vehicles Card matching Demo Image 3
+  Widget _buildWhereToAndVehiclesCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. "Where to?" Title Row (Image 1)
+          const Row(
+            children: [
+              Icon(Icons.search_rounded, color: Color(0xFF0058FF), size: 30),
+              SizedBox(width: 8),
+              Text(
+                'Where to?',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // 2. Location Pill: Current Location: Nellore, Andhra Pradesh (Image 1)
+          GestureDetector(
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Opening Destination Search Screen...')),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.my_location_rounded, color: Color(0xFF0058FF), size: 20),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Current Location: Nellore, Andhra Pradesh',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF334155),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: Color(0xFF64748B), size: 22),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // 3. Four Vehicles Row: Bike, Auto, Cab, Parcel (Images 2 & 3!)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildVehicleItem('Bike', 'assets/images/vehicle_bike.png', Icons.two_wheeler_rounded),
+              _buildVehicleItem('Auto', 'assets/images/vehicle_auto.png', Icons.electric_rickshaw_rounded),
+              _buildVehicleItem('Cab', 'assets/images/vehicle_cab.png', Icons.local_taxi_rounded),
+              _buildVehicleItem('Parcel', 'assets/images/vehicle_parcel.png', Icons.inventory_2_rounded),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Individual Vehicle Item with Real Cutout Image & Selection
+  Widget _buildVehicleItem(String name, String imagePath, IconData fallbackIcon) {
+    final isSelected = _selectedVehicle == name;
+
+    return GestureDetector(
+      onTap: () => setState(() => _selectedVehicle = name),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Circular Vehicle Display Container
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 68,
+            height: 60,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: isSelected ? const Color(0xFF0058FF).withValues(alpha: 0.1) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isSelected ? const Color(0xFF0058FF) : const Color(0xFFE2E8F0),
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: Center(
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.network(
+                    imagePath.replaceFirst('assets/images/', ''),
+                    fit: BoxFit.contain,
+                    errorBuilder: (ctx, err, st) => Icon(
+                      fallbackIcon,
+                      color: isSelected ? const Color(0xFF0058FF) : const Color(0xFF475569),
+                      size: 28,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          // Vehicle Name Text
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+              color: isSelected ? const Color(0xFF0058FF) : const Color(0xFF334155),
             ),
           ),
         ],
       ),
     );
   }
+
+  // Bottom Navigation Bar matching Image 3 (Home, History, Wallet, Profile)
+  Widget _buildBottomNavigationBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        currentIndex: _currentNavIndex,
+        onTap: (index) => setState(() => _currentNavIndex = index),
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFF0058FF),
+        unselectedItemColor: const Color(0xFF94A3B8),
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+        elevation: 0,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: 'History'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_rounded), label: 'Wallet'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          const UserAccountsDrawerHeader(
+            decoration: BoxDecoration(color: Color(0xFF0058FF)),
+            currentAccountPicture: CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Icon(Icons.person, size: 40, color: Color(0xFF0058FF)),
+            ),
+            accountName: Text('Ramesh Kumar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+            accountEmail: Text('ramesh@gmail.com', style: TextStyle(color: Colors.white70)),
+          ),
+          ListTile(leading: const Icon(Icons.local_taxi_rounded, color: Color(0xFF0058FF)), title: const Text('Book Ride'), onTap: () => Navigator.pop(context)),
+          ListTile(leading: const Icon(Icons.history_rounded), title: const Text('Ride History'), onTap: () => Navigator.pop(context)),
+          ListTile(leading: const Icon(Icons.account_balance_wallet_outlined), title: const Text('Flash Wallet'), onTap: () => Navigator.pop(context)),
+          ListTile(leading: const Icon(Icons.security_rounded), title: const Text('Safety Toolkit'), onTap: () => Navigator.pop(context)),
+          ListTile(leading: const Icon(Icons.settings_outlined), title: const Text('Settings'), onTap: () => Navigator.pop(context)),
+          const Divider(),
+          ListTile(leading: const Icon(Icons.logout_rounded, color: Colors.redAccent), title: const Text('Logout', style: TextStyle(color: Colors.redAccent)), onTap: () => Navigator.pop(context)),
+        ],
+      ),
+    );
+  }
+}
+
+// Realistic Nellore City Street Map with Penna River & Nearby Cabs/Autos
+class _NelloreMapPainter extends CustomPainter {
+  final Animation<double> pulseAnimation;
+
+  _NelloreMapPainter({required this.pulseAnimation}) : super(repaint: pulseAnimation);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // 1. Terrain Base
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), Paint()..color = const Color(0xFFF1F5F9));
+
+    // 2. Green Parks & Open Zones in Nellore
+    final parkPaint = Paint()..color = const Color(0xFFDCFCE7);
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.08, h * 0.20, w * 0.32, h * 0.16), const Radius.circular(16)), parkPaint);
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.58, h * 0.32, w * 0.34, h * 0.18), const Radius.circular(16)), parkPaint);
+
+    // 3. Penna River Stream (Light Blue)
+    final riverPaint = Paint()..color = const Color(0xFFBAE6FD)..strokeWidth = 24..style = PaintingStyle.stroke..strokeCap = StrokeCap.round;
+    final riverPath = Path();
+    riverPath.moveTo(w * 0.85, 0);
+    riverPath.quadraticBezierTo(w * 0.78, h * 0.22, w * 0.95, h * 0.45);
+    riverPath.quadraticBezierTo(w, h * 0.60, w * 0.90, h * 0.80);
+    canvas.drawPath(riverPath, riverPaint);
+
+    // 4. Roads Network (Trunk Road, Mini Bypass Road)
+    final roadBase = Paint()..color = const Color(0xFFCBD5E1)..strokeWidth = 14..strokeCap = StrokeCap.round;
+    final roadInner = Paint()..color = Colors.white..strokeWidth = 10..strokeCap = StrokeCap.round;
+
+    // Trunk Road (Vertical)
+    canvas.drawLine(Offset(w * 0.35, 0), Offset(w * 0.40, h), roadBase);
+    canvas.drawLine(Offset(w * 0.35, 0), Offset(w * 0.40, h), roadInner);
+
+    // Mini Bypass Road (Diagonal Curve)
+    final bypassPath = Path();
+    bypassPath.moveTo(0, h * 0.28);
+    bypassPath.quadraticBezierTo(w * 0.50, h * 0.36, w, h * 0.22);
+    canvas.drawPath(bypassPath, roadBase);
+    canvas.drawPath(bypassPath, roadInner);
+
+    // Connecting street
+    canvas.drawLine(Offset(w * 0.15, h * 0.52), Offset(w * 0.85, h * 0.50), roadBase);
+    canvas.drawLine(Offset(w * 0.15, h * 0.52), Offset(w * 0.85, h * 0.50), roadInner);
+
+    // 5. "Nellore" Text Label
+    final textPainter = TextPainter(
+      text: const TextSpan(
+        text: 'Nellore',
+        style: TextStyle(
+          color: Color(0xFF0F172A),
+          fontSize: 26,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.2,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    textPainter.paint(canvas, Offset(w * 0.38, h * 0.36));
+
+    // 6. Dotted Nearby Vehicles (Green Bike, Purple Cab, Yellow Parcel) as in Image 3
+    _drawNearbyMarker(canvas, Offset(w * 0.18, h * 0.28), Icons.two_wheeler, const Color(0xFF16A34A));
+    _drawNearbyMarker(canvas, Offset(w * 0.31, h * 0.42), Icons.local_taxi, const Color(0xFF6366F1));
+    _drawNearbyMarker(canvas, Offset(w * 0.78, h * 0.26), Icons.local_taxi, const Color(0xFF4338CA));
+    _drawNearbyMarker(canvas, Offset(w * 0.85, h * 0.36), Icons.inventory_2, const Color(0xFFF59E0B));
+
+    // 7. Center User Location Pulsing Dot
+    final userPos = Offset(w * 0.50, h * 0.30);
+    final pulseRad = 16 + (pulseAnimation.value * 14);
+    final pulseAlpha = (1.0 - pulseAnimation.value) * 0.35;
+
+    canvas.drawCircle(userPos, pulseRad, Paint()..color = const Color(0xFF0058FF).withValues(alpha: pulseAlpha));
+    canvas.drawCircle(userPos, 10, Paint()..color = Colors.white);
+    canvas.drawCircle(userPos, 7, Paint()..color = const Color(0xFF0058FF));
+  }
+
+  void _drawNearbyMarker(Canvas canvas, Offset pos, IconData icon, Color color) {
+    canvas.drawCircle(pos, 14, Paint()..color = Colors.black.withValues(alpha: 0.12)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
+    canvas.drawCircle(pos, 13, Paint()..color = color);
+    canvas.drawCircle(pos, 4, Paint()..color = Colors.white);
+  }
+
+  @override
+  bool shouldRepaint(covariant _NelloreMapPainter oldDelegate) => true;
 }

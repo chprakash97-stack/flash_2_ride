@@ -1,56 +1,44 @@
 ﻿import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color primaryGreen = Color(0xFF00B368);
-  static const Color darkGreen = Color(0xFF008A4F);
-  static const Color backgroundWhite = Color(0xFFF8FAFC); // Eye-comfort soft background
+  static const Color mainBlue = Color(0xFF0645D8);
+  static const Color darkBlue = Color(0xFF062B9C);
+  static const Color brightBlue = Color(0xFF0878F9);
+  static const Color pureWhite = Color(0xFFFFFFFF);
+  static const Color brandYellow = Color(0xFFFFD21C);
+
+  static const Color backgroundLight = Color(0xFFF8F9FE);
   static const Color cardWhite = Color(0xFFFFFFFF);
   static const Color borderGrey = Color(0xFFE2E8F0);
-  static const Color textBlack = Color(0xFF0F172A); // Ultra-crisp high-contrast text
-  static const Color textGrey = Color(0xFF475569);
-  static const Color flashYellow = Color(0xFFFFC107);
+  static const Color textDark = Color(0xFF0F172A);
+  static const Color textGrey = Color(0xFF64748B);
 
-  // Aliases for full backward compatibility
-  static const Color cardBlack = Color(0xFFFFFFFF);
-  static const Color backgroundBlack = Color(0xFFF8FAFC);
-  static const Color textWhite = Color(0xFF0F172A);
+  static const Color brandPurple = mainBlue;
+  static const Color brandPurpleLight = brightBlue;
+  static const Color primaryGreen = mainBlue;
+  static const Color cardBlack = cardWhite;
+  static const Color backgroundBlack = backgroundLight;
+  static const Color textWhite = textDark;
+  static const Color textBlack = textDark;
 
-  static ThemeData get lightTheme {
+  static ThemeData get lightTheme => masterTheme;
+
+  static ThemeData get masterTheme {
     return ThemeData(
       brightness: Brightness.light,
-      scaffoldBackgroundColor: backgroundWhite,
-      primaryColor: primaryGreen,
+      scaffoldBackgroundColor: backgroundLight,
+      primaryColor: mainBlue,
       colorScheme: const ColorScheme.light(
-        primary: primaryGreen,
-        secondary: primaryGreen,
+        primary: mainBlue,
+        secondary: brandYellow,
         surface: cardWhite,
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: cardWhite,
         elevation: 0.5,
         centerTitle: true,
-        iconTheme: IconThemeData(color: primaryGreen),
-        titleTextStyle: TextStyle(color: textBlack, fontSize: 19, fontWeight: FontWeight.w900, letterSpacing: 0.5),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryGreen,
-          foregroundColor: Colors.white,
-          elevation: 1,
-          textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-        ),
-      ),
-      inputDecorationTheme: const InputDecorationTheme(
-        filled: true,
-        fillColor: Color(0xFFF1F5F9),
-        hintStyle: TextStyle(color: textGrey, fontSize: 14),
-        prefixIconColor: primaryGreen,
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14)), borderSide: BorderSide(color: borderGrey)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14)), borderSide: BorderSide(color: borderGrey)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14)), borderSide: BorderSide(color: primaryGreen, width: 1.5)),
+        iconTheme: IconThemeData(color: mainBlue),
+        titleTextStyle: TextStyle(color: textDark, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.5),
       ),
     );
   }

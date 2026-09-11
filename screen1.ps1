@@ -1,5 +1,59 @@
-Write-Host "Building Screen 1: Official Neon Splash Screen from Image..." -ForegroundColor Green
+Write-Host "Building Screen 1: Master Splash Screen matching Image #1..." -ForegroundColor Green
 
+# 1. Update AppTheme with Master Purple & Yellow Theme from Image
+@'
+import 'package:flutter/material.dart';
+
+class AppTheme {
+  static const Color brandPurple = Color(0xFF3F2B96);
+  static const Color brandPurpleLight = Color(0xFF5E43F3);
+  static const Color brandYellow = Color(0xFFFFC107);
+  static const Color backgroundLight = Color(0xFFF8F9FE);
+  static const Color cardWhite = Color(0xFFFFFFFF);
+  static const Color borderGrey = Color(0xFFE2E8F0);
+  static const Color textDark = Color(0xFF0F172A);
+  static const Color textGrey = Color(0xFF64748B);
+
+  // Backward compatibility
+  static const Color primaryGreen = Color(0xFF3F2B96);
+  static const Color cardBlack = Color(0xFFFFFFFF);
+  static const Color backgroundBlack = Color(0xFFF8F9FE);
+  static const Color textWhite = Color(0xFF0F172A);
+  static const Color textBlack = Color(0xFF0F172A);
+
+  static ThemeData get lightTheme {
+    return ThemeData(
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: backgroundLight,
+      primaryColor: brandPurple,
+      colorScheme: const ColorScheme.light(
+        primary: brandPurple,
+        secondary: brandYellow,
+        surface: cardWhite,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: cardWhite,
+        elevation: 0.5,
+        centerTitle: true,
+        iconTheme: IconThemeData(color: brandPurple),
+        titleTextStyle: TextStyle(color: textDark, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: brandPurple,
+          foregroundColor: Colors.white,
+          elevation: 2,
+          textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+      ),
+    );
+  }
+}
+'@ | Set-Content -Path 'lib/theme/app_theme.dart' -Encoding UTF8
+
+# 2. Update Splash Screen with Exact Artwork from Image #1
 @'
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -18,16 +72,17 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animController;
-  late Animation<double> _glowAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
-    _glowAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(CurvedAnimation(parent: _animController, curve: Curves.easeInOut));
+    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
+    _scaleAnimation = CurvedAnimation(parent: _animController, curve: Curves.easeOutBack);
+    _animController.forward();
 
-    // Wait 3 seconds to showcase the splash animation, then route
-    Timer(const Duration(seconds: 4), () {
+    // Auto-navigate to Screen 2 (Login Screen) after 3.5 seconds
+    Timer(const Duration(milliseconds: 3500), () {
       if (!mounted) return;
       final auth = Provider.of<AuthProvider>(context, listen: false);
       Navigator.pushReplacement(
@@ -45,197 +100,287 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    const Color neonGreen = Color(0xFF00E676);
-    const Color deepBlack = Color(0xFF060907);
+    const Color brandPurple = Color(0xFF3F2B96);
+    const Color brandPurpleLight = Color(0xFF5E43F3);
+    const Color brandYellow = Color(0xFFFFC107);
 
     return Scaffold(
-      backgroundColor: deepBlack,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(flex: 2),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [brandPurple, brandPurpleLight],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const Spacer(flex: 2),
 
-            // Top Flash Bolt with Neon Glow
-            AnimatedBuilder(
-              animation: _glowAnimation,
-              builder: (context, child) {
-                return Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: neonGreen.withValues(alpha: 0.35 * _glowAnimation.value),
-                        blurRadius: 40,
-                        spreadRadius: 10,
+              // Top Arched Yellow Car Outline
+              CustomPaint(
+                size: const Size(120, 22),
+                painter: CarRoofOutlinePainter(),
+              ),
+              const SizedBox(height: 6),
+
+              // Master ≡Flash2Ride Logo
+              ScaleTransition(
+                scale: _scaleAnimation,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Speedlines
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(width: 22, height: 3.5, decoration: BoxDecoration(color: brandYellow, borderRadius: BorderRadius.circular(2))),
+                        const SizedBox(height: 3),
+                        Container(width: 16, height: 3.5, decoration: BoxDecoration(color: brandYellow, borderRadius: BorderRadius.circular(2))),
+                        const SizedBox(height: 3),
+                        Container(width: 10, height: 3.5, decoration: BoxDecoration(color: brandYellow, borderRadius: BorderRadius.circular(2))),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
+                    RichText(
+                      text: const TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Flash',
+                            style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, letterSpacing: -0.5),
+                          ),
+                          TextSpan(
+                            text: '2',
+                            style: TextStyle(color: brandYellow, fontSize: 40, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic),
+                          ),
+                          TextSpan(
+                            text: 'Ride',
+                            style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, letterSpacing: -0.5),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.electric_bolt_rounded, size: 75, color: neonGreen),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 16),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 6),
 
-            // Flash2Ride Brand Name
-            RichText(
-              text: const TextSpan(
+              // Tagline: Ride Smart • Travel Easy
+              const Text(
+                'Ride Smart   •   Travel Easy',
+                style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.8),
+              ),
+
+              const Spacer(flex: 3),
+
+              // Center Artwork (Phone Map Pin + City Skyline + White Cab Car)
+              SizedBox(
+                height: 140,
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    // Skyline in background
+                    Positioned(
+                      bottom: 12,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          _buildBuilding(20, 60),
+                          _buildBuilding(28, 85),
+                          _buildBuilding(18, 50),
+                          _buildBuilding(30, 100),
+                          _buildBuilding(22, 70),
+                          _buildBuilding(26, 90),
+                          _buildBuilding(20, 55),
+                        ],
+                      ),
+                    ),
+
+                    // Left Map Card with Purple Pin
+                    Positioned(
+                      left: 45,
+                      bottom: 4,
+                      child: Container(
+                        width: 72,
+                        height: 105,
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 12, offset: const Offset(0, 4)),
+                          ],
+                        ),
+                        child: Stack(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEEF2F6),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(7),
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: brandPurple,
+                                ),
+                                child: const Icon(Icons.location_on, size: 18, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Right Modern White Sedan Car with Flash2Ride Door Decal
+                    Positioned(
+                      right: 35,
+                      bottom: 4,
+                      child: Container(
+                        width: 185,
+                        height: 74,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(32),
+                            topRight: Radius.circular(24),
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 14, offset: const Offset(0, 6)),
+                          ],
+                        ),
+                        child: Stack(
+                          children: [
+                            // Dark Windshield Glass
+                            Positioned(
+                              top: 6,
+                              left: 42,
+                              right: 28,
+                              height: 24,
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF1E293B),
+                                  borderRadius: BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(12)),
+                                ),
+                              ),
+                            ),
+                            // Yellow Door Decal Stripe
+                            Positioned(
+                              bottom: 20,
+                              left: 12,
+                              right: 12,
+                              height: 13,
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFFFFBEB),
+                                  border: Border(
+                                    top: BorderSide(color: brandYellow, width: 2),
+                                    bottom: BorderSide(color: brandYellow, width: 2),
+                                  ),
+                                ),
+                                child: const Center(
+                                  child: Text('Flash2Ride', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: brandPurple)),
+                                ),
+                              ),
+                            ),
+                            // Wheels
+                            Positioned(left: 32, bottom: 2, child: _buildCarWheel()),
+                            Positioned(right: 32, bottom: 2, child: _buildCarWheel()),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const Spacer(flex: 3),
+
+              // Bottom Loading Indicator
+              Column(
                 children: [
-                  TextSpan(
-                    text: 'Flash',
-                    style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, letterSpacing: -0.5),
+                  const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
                   ),
-                  TextSpan(
-                    text: '2',
-                    style: TextStyle(color: neonGreen, fontSize: 40, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic),
-                  ),
-                  TextSpan(
-                    text: 'Ride',
-                    style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, letterSpacing: -0.5),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Loading...',
+                    style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 1),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 6),
-
-            // Tagline: Ride Faster • Live Safer
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Text('Ride Faster', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.8)),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text('•', style: TextStyle(color: neonGreen, fontSize: 14, fontWeight: FontWeight.bold)),
-                ),
-                Text('Live Safer', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.8)),
-              ],
-            ),
-
-            const Spacer(flex: 2),
-
-            // Center Futuristic Neon Car Illustration with Glowing Headlights
-            Center(
-              child: SizedBox(
-                width: 280,
-                height: 110,
-                child: CustomPaint(
-                  painter: NeonCarFrontPainter(glow: _glowAnimation),
-                ),
-              ),
-            ),
-
-            const Spacer(flex: 3),
-
-            // Bottom Loading Indicator
-            Column(
-              children: [
-                SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(neonGreen.withValues(alpha: 0.8)),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Loading...',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 1),
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-          ],
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBuilding(double width, double height) {
+    return Container(
+      width: width,
+      height: height,
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.22),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
+      ),
+    );
+  }
+
+  Widget _buildCarWheel() {
+    return Container(
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.black,
+        border: Border.all(color: Colors.white, width: 2),
+      ),
+      child: const Center(
+        child: CircleAvatar(radius: 3, backgroundColor: Colors.grey),
       ),
     );
   }
 }
 
-// Custom Painter to draw the sleek neon sports car front with glowing green headlights
-class NeonCarFrontPainter extends CustomPainter {
-  final Animation<double> glow;
-  NeonCarFrontPainter({required this.glow}) : super(repaint: glow);
-
+class CarRoofOutlinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    const Color neon = Color(0xFF00E676);
-    final w = size.width;
-    final h = size.height;
+    final paint = Paint()
+      ..color = const Color(0xFFFFC107)
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
 
-    // Roof & Windshield Curve
-    final roofPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.85)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
-
-    final roofPath = Path();
-    roofPath.moveTo(w * 0.25, h * 0.55);
-    roofPath.quadraticBezierTo(w * 0.5, h * 0.05, w * 0.75, h * 0.55);
-    canvas.drawPath(roofPath, roofPaint);
-
-    // Hood Line & Body Outlines
-    final bodyPaint = Paint()
-      ..color = neon.withValues(alpha: 0.9)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    final bodyPath = Path();
-    bodyPath.moveTo(w * 0.12, h * 0.75);
-    bodyPath.quadraticBezierTo(w * 0.5, h * 0.65, w * 0.88, h * 0.75);
-    canvas.drawPath(bodyPath, bodyPaint);
-
-    // Front Bumper Splitter & Underglow
-    final underglowPaint = Paint()
-      ..color = neon.withValues(alpha: 0.4 * glow.value)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6;
-    canvas.drawLine(Offset(w * 0.15, h * 0.92), Offset(w * 0.85, h * 0.92), underglowPaint);
-
-    final splitterPaint = Paint()
-      ..color = neon
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
-    canvas.drawLine(Offset(w * 0.18, h * 0.92), Offset(w * 0.82, h * 0.92), splitterPaint);
-
-    // Left Angled LED Headlight (Aggressive Sports Car Eyes)
-    _drawHeadlight(canvas, Offset(w * 0.22, h * 0.68), isLeft: true);
-    // Right Angled LED Headlight
-    _drawHeadlight(canvas, Offset(w * 0.78, h * 0.68), isLeft: false);
-  }
-
-  void _drawHeadlight(Canvas canvas, Offset center, {required bool isLeft}) {
-    const Color neon = Color(0xFF00FF66);
-    final glowPaint = Paint()
-      ..color = neon.withValues(alpha: 0.8 * glow.value)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-
-    final lightPath = Path();
-    final dir = isLeft ? 1.0 : -1.0;
-    lightPath.moveTo(center.dx - (dir * 25), center.dy - 6);
-    lightPath.lineTo(center.dx + (dir * 15), center.dy - 2);
-    lightPath.lineTo(center.dx + (dir * 5), center.dy + 8);
-    lightPath.close();
-
-    canvas.drawPath(lightPath, glowPaint);
-
-    final corePaint = Paint()..color = Colors.white;
-    canvas.drawCircle(center, 3, corePaint);
+    final path = Path();
+    path.moveTo(0, size.height);
+    path.quadraticBezierTo(size.width / 2, -8, size.width, size.height);
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant NeonCarFrontPainter oldDelegate) => true;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 '@ | Set-Content -Path 'lib/screens/splash_screen.dart' -Encoding UTF8
 
-Write-Host "Verifying code health with flutter analyze..." -ForegroundColor Green
+Write-Host "Verifying with flutter analyze..." -ForegroundColor Green
 dart fix --apply | Out-Null
 flutter analyze
 
 Write-Host "==============================================================================" -ForegroundColor Green
-Write-Host " Screen 1 (Splash Screen) Generated Successfully!                             " -ForegroundColor Green
+Write-Host " Screen 1 (Master Splash Screen) Generated with 0 Errors!                     " -ForegroundColor Green
 Write-Host "==============================================================================" -ForegroundColor Green

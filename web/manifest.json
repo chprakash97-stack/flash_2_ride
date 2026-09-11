@@ -1,6 +1,6 @@
-{
-    "name": "flash_2_ride",
-    "short_name": "flash_2_ride",
+﻿{
+    "name": "Flash2Ride",
+    "short_name": "Flash2Ride",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
@@ -33,3 +33,4 @@
         }
     ]
 }
+

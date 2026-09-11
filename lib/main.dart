@@ -6,15 +6,8 @@ import 'providers/ride_provider.dart';
 import 'screens/splash_screen.dart';
 
 void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => RideProvider()),
-      ],
-      child: const Flash2RideApp(),
-    ),
-  );
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const Flash2RideApp());
 }
 
 class Flash2RideApp extends StatelessWidget {
@@ -22,11 +15,17 @@ class Flash2RideApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flash2Ride',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      home: const SplashScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => RideProvider()),
+      ],
+      child: MaterialApp(
+        title: 'Flash2Ride',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        home: const SplashScreen(),
+      ),
     );
   }
 }
