@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 
 class ParcelBookingScreen extends StatefulWidget {
@@ -54,7 +54,7 @@ class _ParcelBookingScreenState extends State<ParcelBookingScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Flash Parcel Request Created! Finding Captain...')));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Flash Parcel Request Created! Finding Partner...')));
                   Navigator.pop(context);
                 },
                 child: const Text('Confirm & Send Parcel (₹39 Base)'),

@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import '../tracking/searching_partner_screen.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
   final int totalFare;
@@ -16,11 +17,10 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   String _selectedPaymentMethod = 'Flash Wallet';
 
   void _handleProceed() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Payment Method: $_selectedPaymentMethod selected! Ready for Section 4: Searching Captain.'),
-        backgroundColor: const Color(0xFF0058FF),
-        duration: const Duration(seconds: 2),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const SearchingPartnerscreen(),
       ),
     );
   }
@@ -90,7 +90,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     _buildPaymentOption(
                       id: 'Cash Payment',
                       title: 'Cash Payment',
-                      subtitle: 'Pay directly to captain after ride',
+                      subtitle: 'Pay directly to Partner after ride',
                       icon: Icons.payments_rounded,
                       iconColor: const Color(0xFF10B981),
                       iconBg: const Color(0xFFECFDF5),

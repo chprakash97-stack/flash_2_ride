@@ -1,28 +1,10 @@
-Write-Host "======================================================" -ForegroundColor Cyan
-Write-Host " Linking Original Vehicle Images (Bike, Auto, Car, Parcel)..." -ForegroundColor Green
-Write-Host "======================================================" -ForegroundColor Cyan
+Write-Host "Updating Radar Vehicle Screen with Bike, Auto, Car & Parcel support..." -ForegroundColor Green
 
-# 1. pubspec.yaml లో assets/images/ రిజిస్టర్ అయిందో లేదో చూసి సరిచేస్తుంది
-$pubFile = "$PWD\pubspec.yaml"
-if (Test-Path $pubFile) {
-    $pubText = [System.IO.File]::ReadAllText($pubFile, [System.Text.Encoding]::UTF8)
-    if ($pubText -notmatch 'assets/images/') {
-        if ($pubText -match 'assets:') {
-            $pubText = $pubText -replace 'assets:', "assets:`n    - assets/images/`n    - assets/"
-        } else {
-            $pubText += "`nflutter:`n  assets:`n    - assets/images/`n    - assets/`n"
-        }
-        [System.IO.File]::WriteAllText($pubFile, $pubText, [System.Text.Encoding]::UTF8)
-        Write-Host "[OK] Registered assets/images/ in pubspec.yaml" -ForegroundColor Green
-    }
-}
-
-# 2. Searching Partner స్క్రీన్ కోడ్ ను మీ అసలైన ఇమేజ్ లతో అప్‌డేట్ చేస్తుంది
 $code = @'
 import 'package:flutter/material.dart';
 
 class SearchingPartnerscreen extends StatefulWidget {
-  final String? vehicleType;
+  final String? vehicleType; // 'bike', 'auto', 'car', 'parcel'
   final String? price;
   final dynamic data;
 
@@ -39,8 +21,8 @@ class SearchingPartnerscreen extends StatefulWidget {
 
 class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
-  String _selectedVehicle = 'auto';
-  String _fare = '\u20B926';
+  String _selectedVehicle = 'auto'; // Default: auto
+  String _fare = '₹26';
 
   @override
   void initState() {
@@ -50,6 +32,7 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
       duration: const Duration(seconds: 2),
     )..repeat();
 
+    // హోమ్ స్క్రీన్ నుండి వచ్చిన డేటాను సెట్ చేస్తుంది
     if (widget.vehicleType != null) {
       _selectedVehicle = widget.vehicleType!.toLowerCase();
     }
@@ -61,6 +44,7 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // Route arguments ద్వారా వచ్చిన వెహికల్ డేటాను రీడ్ చేస్తుంది
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map) {
       if (args['vehicleType'] != null) {
@@ -86,12 +70,13 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
     super.dispose();
   }
 
+  // వెహికల్ వివరాలు (పేరు, ధర, ఐకాన్, అసెట్ పాత్)
   Map<String, dynamic> _getVehicleInfo() {
     switch (_selectedVehicle) {
       case 'bike':
         return {
           'title': 'Flash Bike',
-          'fare': _fare == '\u20B926' ? '\u20B919' : _fare,
+          'fare': _fare == '₹26' ? '₹19' : _fare,
           'icon': Icons.two_wheeler_rounded,
           'assetPath': 'assets/images/bike.png',
           'subText': 'Searching for nearby bike partner...',
@@ -101,7 +86,7 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
       case 'cab':
         return {
           'title': 'Flash Car',
-          'fare': _fare == '\u20B926' ? '\u20B949' : _fare,
+          'fare': _fare == '₹26' ? '₹49' : _fare,
           'icon': Icons.directions_car_rounded,
           'assetPath': 'assets/images/car.png',
           'subText': 'Searching for nearby car partner...',
@@ -110,7 +95,7 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
       case 'parcel':
         return {
           'title': 'Flash Parcel',
-          'fare': _fare == '\u20B926' ? '\u20B935' : _fare,
+          'fare': _fare == '₹26' ? '₹35' : _fare,
           'icon': Icons.inventory_2_rounded,
           'assetPath': 'assets/images/parcel.png',
           'subText': 'Searching for nearby delivery partner...',
@@ -129,17 +114,17 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
     }
   }
 
+  // ఒరిజినల్ ఇమేజ్ ఉంటే అది చూపిస్తుంది, లేకపోతే వెక్టర్ ఐకాన్ చూపిస్తుంది
   Widget _buildVehicleImage(Map<String, dynamic> info) {
     return Image.asset(
       info['assetPath'],
-      width: 76,
-      height: 76,
-      fit: BoxFit.contain,
+      width: 64,
+      height: 64,
       errorBuilder: (context, error, stackTrace) {
         return Icon(
           info['icon'] as IconData,
-          color: const Color(0xFF0066FF),
-          size: 56,
+          color: Colors.white,
+          size: 54,
         );
       },
     );
@@ -172,37 +157,39 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // రేడార్ యానిమేషన్ మరియు మధ్యలో సెలెక్ట్ చేసిన వెహికల్
                     Stack(
                       alignment: Alignment.center,
                       children: [
+                        // రేడార్ పల్స్ ఎఫెక్ట్
                         AnimatedBuilder(
                           animation: _pulseController,
                           builder: (context, child) {
                             return Container(
-                              width: 120 + (_pulseController.value * 42),
-                              height: 120 + (_pulseController.value * 42),
+                              width: 120 + (_pulseController.value * 40),
+                              height: 120 + (_pulseController.value * 40),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: const Color(0xFF0066FF).withOpacity(0.12 * (1 - _pulseController.value)),
+                                color: const Color(0xFF0066FF).withOpacity(0.15 * (1 - _pulseController.value)),
                               ),
                             );
                           },
                         ),
+                        // సెంటర్ సర్కిల్ లోపల కస్టమర్ ఎంచుకున్న వెహికల్ ఇమేజ్
                         Container(
                           width: 120,
                           height: 120,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: const Color(0xFF0066FF),
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF0066FF).withOpacity(0.25),
-                                blurRadius: 20,
-                                spreadRadius: 3,
-                                offset: const Offset(0, 6),
+                                color: const Color(0xFF0066FF).withOpacity(0.35),
+                                blurRadius: 25,
+                                spreadRadius: 4,
+                                offset: const Offset(0, 8),
                               ),
                             ],
-                            border: Border.all(color: const Color(0xFF0066FF).withOpacity(0.25), width: 2),
                           ),
                           child: Center(
                             child: _buildVehicleImage(info),
@@ -211,6 +198,8 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
                       ],
                     ),
                     const SizedBox(height: 32),
+
+                    // డైనమిక్ మెయిన్ టెక్స్ట్
                     Text(
                       info['subText'],
                       style: const TextStyle(
@@ -220,6 +209,8 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
                       ),
                     ),
                     const SizedBox(height: 8),
+
+                    // లొకేషన్ వివరాలు
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -235,6 +226,8 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
                       ],
                     ),
                     const SizedBox(height: 16),
+
+                    // సెలెక్ట్ అయిన వెహికల్ పేరు & ఫేర్ బ్యాడ్జ్
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
@@ -243,7 +236,7 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
                         border: Border.all(color: const Color(0xFFCCE0FF)),
                       ),
                       child: Text(
-                        "${info['title']} \u2022 ${info['fare']}",
+                        "${info['title']} • ${info['fare']}",
                         style: const TextStyle(
                           color: Color(0xFF0066FF),
                           fontWeight: FontWeight.w600,
@@ -255,6 +248,8 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
                 ),
               ),
             ),
+
+            // బాటమ్ కార్డ్
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -343,21 +338,19 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
   }
 }
 
+// Aliases for full compatibility
 typedef SearchingPartnerScreen = SearchingPartnerscreen;
 typedef SearchingCaptainScreen = SearchingPartnerscreen;
 '@
 
+# ఫైల్స్ లోకి అప్‌డేట్ చేస్తుంది
 $target1 = "$PWD\lib\screens\tracking\searching_partner_screen.dart"
 $target2 = "$PWD\lib\screens\tracking\searching_Partner_screen.dart"
 
 [System.IO.File]::WriteAllText($target1, $code, [System.Text.Encoding]::UTF8)
 [System.IO.File]::WriteAllText($target2, $code, [System.Text.Encoding]::UTF8)
 
-# 3. Flutter pub get రన్ చేసి అసెట్స్ ను లోడ్ చేస్తుంది
-Write-Host "Running flutter pub get to link images..." -ForegroundColor Yellow
-flutter pub get
-
 Write-Host "======================================================" -ForegroundColor Cyan
-Write-Host "SUCCESS: All 4 original vehicle images linked perfectly!" -ForegroundColor Green
-Write-Host "Now press F5 in Chrome or 'R' in CMD to view." -ForegroundColor Cyan
+Write-Host "Radar screen updated with dynamic Bike/Auto/Car/Parcel!" -ForegroundColor Green
+Write-Host "Now press F5 in Chrome or 'R' in CMD to see the update." -ForegroundColor Yellow
 Write-Host "======================================================" -ForegroundColor Cyan

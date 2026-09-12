@@ -239,7 +239,7 @@ class _ScheduleRideScreenState extends State<ScheduleRideScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Your ${widget.rideType} captain will arrive 5-10 minutes prior to your scheduled time at Nellore.',
+                                  'Your ${widget.rideType} Partner will arrive 5-10 minutes prior to your scheduled time at Nellore.',
                                   style: const TextStyle(fontSize: 12, color: Color(0xFF3B82F6), height: 1.4),
                                 ),
                               ],

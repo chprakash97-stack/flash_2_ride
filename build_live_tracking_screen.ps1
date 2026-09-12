@@ -1,6 +1,7 @@
-﻿import '../../views/safety/safety_toolkit_screen.dart';
+Write-Host "Building Poster Screen 2: Live Tracking Screen..." -ForegroundColor Green
+
+$code = @'
 import 'package:flutter/material.dart';
-import '../ride/in_ride_chat_screen.dart';
 
 class LiveTrackingScreen extends StatefulWidget {
   final dynamic data;
@@ -49,14 +50,16 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
             icon: const Icon(Icons.security_rounded, color: Colors.white),
             tooltip: 'Safety Toolkit',
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const SafetyToolkitScreen()));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Flash 2 Ride 24x7 Safety Toolkit Active')),
+              );
             },
           ),
         ],
       ),
       body: Stack(
         children: [
-          // 1. à°®à±à°¯à°¾à°ªà± à°¬à±à°¯à°¾à°•à±â€Œà°—à±à°°à±Œà°‚à°¡à±
+          // 1. సిమ్యులేటెడ్ లైవ్ మ్యాప్ బ్యాక్‌గ్రౌండ్ (Simulated Live Route Map)
           Positioned.fill(
             child: Container(
               color: const Color(0xFFE8EEF5),
@@ -66,7 +69,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
             ),
           ),
 
-          // 2. à°Ÿà°¾à°ªà± ETA à°¬à±à°¯à°¾à°¡à±à°œà±
+          // 2. టాప్ ఫ్లోటింగ్ ETA కార్డ్ (Arriving in 3 mins)
           Positioned(
             top: 16,
             left: 16,
@@ -131,7 +134,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
             ),
           ),
 
-          // 3. à°¬à°¾à°Ÿà°®à± à°•à°¾à°°à±à°¡à±
+          // 3. బాటమ్ ఫ్లోటింగ్ పార్ట్నర్ & రైడ్ ఇన్ఫో కార్డ్
           Positioned(
             left: 0,
             right: 0,
@@ -152,6 +155,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Drag Handle
                   Container(
                     width: 40,
                     height: 4,
@@ -162,7 +166,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
                   ),
                   const SizedBox(height: 16),
 
-                  // à°ªà°¾à°°à±à°Ÿà±à°¨à°°à± à°ªà±à°°à±Šà°«à±ˆà°²à±
+                  // పార్ట్నర్ ప్రొఫైల్ రో
                   Row(
                     children: [
                       Stack(
@@ -216,17 +220,13 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
                               ],
                             ),
                             const SizedBox(height: 2),
-                            const Text('Flash Auto â€¢ Bajaj Maxima Z', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                            const Text('Flash Auto • Bajaj Maxima Z', style: TextStyle(fontSize: 12, color: Colors.black54)),
                           ],
                         ),
                       ),
-                      // Call Button
+                      // Call & Chat బటన్లు
                       IconButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Calling Partner: +91 98765 43210')),
-                          );
-                        },
+                        onPressed: () {},
                         style: IconButton.styleFrom(
                           backgroundColor: const Color(0xFFE8F8F0),
                           foregroundColor: const Color(0xFF00A859),
@@ -234,14 +234,8 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
                         icon: const Icon(Icons.phone),
                       ),
                       const SizedBox(width: 6),
-                      // Chat Button - à°¡à±ˆà°°à±†à°•à±à°Ÿà± à°—à°¾ InRideChatScreen à°“à°ªà±†à°¨à± à°…à°µà±à°¤à±à°‚à°¦à°¿
                       IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const InRideChatScreen()),
-                          );
-                        },
+                        onPressed: () {},
                         style: IconButton.styleFrom(
                           backgroundColor: const Color(0xFFEBF3FF),
                           foregroundColor: const Color(0xFF0066FF),
@@ -255,7 +249,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
                   const Divider(height: 1),
                   const SizedBox(height: 14),
 
-                  // Start OTP à°¬à°¾à°•à±à°¸à±
+                  // Start Ride OTP బాక్స్ (పోస్టర్ మోడల్)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
@@ -297,7 +291,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
 
                   const SizedBox(height: 14),
 
-                  // à°ªà°¿à°•à°ªà± & à°¡à±à°°à°¾à°ªà± à°µà°¿à°µà°°à°¾à°²à±
+                  // పికప్ & డ్రాప్ వివరాలు
                   Row(
                     children: [
                       Column(
@@ -340,12 +334,12 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
 
                   const SizedBox(height: 16),
 
-                  // à°¬à°¾à°Ÿà°®à± à°¬à°Ÿà°¨à±à°²à±
+                  // బాటమ్ బటన్లు: Share Trip & Cancel Ride
                   Row(
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (_) => const SafetyToolkitScreen())); },
+                          onPressed: () {},
                           icon: const Icon(Icons.share_outlined, size: 18),
                           label: const Text('Share Trip'),
                           style: OutlinedButton.styleFrom(
@@ -400,12 +394,14 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
   }
 }
 
+// మ్యాప్ రూట్ లైన్ మరియు వెహికల్ మూవ్‌మెంట్ పెయింటర్
 class _MapRoutePainter extends CustomPainter {
   final Animation<double> pulseAnimation;
   _MapRoutePainter({required this.pulseAnimation}) : super(repaint: pulseAnimation);
 
   @override
   void paint(Canvas canvas, Size size) {
+    // రోడ్లు
     final roadPaint = Paint()
       ..color = Colors.white
       ..strokeWidth = 14
@@ -418,6 +414,7 @@ class _MapRoutePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
+    // రోడ్ గ్రిడ్
     canvas.drawLine(Offset(0, size.height * 0.25), Offset(size.width, size.height * 0.25), roadBorder);
     canvas.drawLine(Offset(0, size.height * 0.25), Offset(size.width, size.height * 0.25), roadPaint);
 
@@ -427,6 +424,7 @@ class _MapRoutePainter extends CustomPainter {
     canvas.drawLine(Offset(0, size.height * 0.45), Offset(size.width, size.height * 0.45), roadBorder);
     canvas.drawLine(Offset(0, size.height * 0.45), Offset(size.width, size.height * 0.45), roadPaint);
 
+    // నీలం రంగు యాక్టివ్ రూట్ లైన్ (Active Navigation Polyline)
     final routePaint = Paint()
       ..color = const Color(0xFF0066FF)
       ..strokeWidth = 6
@@ -440,6 +438,7 @@ class _MapRoutePainter extends CustomPainter {
     path.lineTo(size.width * 0.55, size.height * 0.45);
     canvas.drawPath(path, routePaint);
 
+    // యూజర్ పికప్ పిన్ (గ్రీన్ పల్స్)
     final pickupPoint = Offset(size.width * 0.55, size.height * 0.45);
     final pulseRadius = 12 + (pulseAnimation.value * 14);
     final pulsePaint = Paint()
@@ -453,6 +452,7 @@ class _MapRoutePainter extends CustomPainter {
     final innerDot = Paint()..color = Colors.white;
     canvas.drawCircle(pickupPoint, 3, innerDot);
 
+    // మూవింగ్ పార్ట్నర్ మార్కర్ (Vehicle Marker on Route)
     final partnerPos = Offset(size.width * 0.3, size.height * 0.32);
     final markerPaint = Paint()
       ..color = const Color(0xFF0066FF)
@@ -469,3 +469,30 @@ class _MapRoutePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _MapRoutePainter oldDelegate) => true;
 }
+'@
+
+# 1. screens/tracking లో అప్‌డేట్ చేస్తుంది
+$target1 = "$PWD\lib\screens\tracking\live_tracking_screen.dart"
+if (Test-Path "$PWD\lib\screens\tracking") {
+    [System.IO.File]::WriteAllText($target1, $code, [System.Text.Encoding]::UTF8)
+    Write-Host "[OK] Updated: $target1" -ForegroundColor Green
+}
+
+# 2. screens/ride లో అప్‌డేట్ చేస్తుంది
+$target2 = "$PWD\lib\screens\ride\live_tracking_screen.dart"
+if (Test-Path "$PWD\lib\screens\ride") {
+    [System.IO.File]::WriteAllText($target2, $code, [System.Text.Encoding]::UTF8)
+    Write-Host "[OK] Updated: $target2" -ForegroundColor Green
+}
+
+# 3. views/tracking లో అప్‌డేట్ చేస్తుంది
+$target3 = "$PWD\lib\views\tracking\live_ride_tracking_screen.dart"
+if (Test-Path "$PWD\lib\views\tracking") {
+    [System.IO.File]::WriteAllText($target3, $code, [System.Text.Encoding]::UTF8)
+    Write-Host "[OK] Updated: $target3" -ForegroundColor Green
+}
+
+Write-Host "======================================================" -ForegroundColor Cyan
+Write-Host "SUCCESS: Live Tracking screen updated to Poster Model!" -ForegroundColor Green
+Write-Host "Now press F5 in Chrome or 'R' in CMD to view." -ForegroundColor Cyan
+Write-Host "======================================================" -ForegroundColor Cyan

@@ -39,7 +39,7 @@ class _StreetQrScanScreenState extends State<StreetQrScanScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Enter Captain Ride Code',
+                'Enter Partner Ride Code',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -48,7 +48,7 @@ class _StreetQrScanScreenState extends State<StreetQrScanScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Ask your Flash Captain for their 4 or 6-digit ride code.',
+                'Ask your Flash Partner for their 4 or 6-digit ride code.',
                 style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
               ),
               const SizedBox(height: 16),

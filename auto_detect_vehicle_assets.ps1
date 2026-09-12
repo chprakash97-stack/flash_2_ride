@@ -1,24 +1,52 @@
 Write-Host "======================================================" -ForegroundColor Cyan
-Write-Host " Linking Original Vehicle Images (Bike, Auto, Car, Parcel)..." -ForegroundColor Green
+Write-Host " Scanning project for Home Screen Vehicle Images..." -ForegroundColor Cyan
 Write-Host "======================================================" -ForegroundColor Cyan
 
-# 1. pubspec.yaml లో assets/images/ రిజిస్టర్ అయిందో లేదో చూసి సరిచేస్తుంది
-$pubFile = "$PWD\pubspec.yaml"
-if (Test-Path $pubFile) {
-    $pubText = [System.IO.File]::ReadAllText($pubFile, [System.Text.Encoding]::UTF8)
-    if ($pubText -notmatch 'assets/images/') {
-        if ($pubText -match 'assets:') {
-            $pubText = $pubText -replace 'assets:', "assets:`n    - assets/images/`n    - assets/"
-        } else {
-            $pubText += "`nflutter:`n  assets:`n    - assets/images/`n    - assets/`n"
-        }
-        [System.IO.File]::WriteAllText($pubFile, $pubText, [System.Text.Encoding]::UTF8)
-        Write-Host "[OK] Registered assets/images/ in pubspec.yaml" -ForegroundColor Green
+# 1. ప్రాజెక్ట్ లోని అన్ని ఇమేజ్ ఫైల్స్ ను వెతుకుతుంది
+$allImages = Get-ChildItem -Path "$PWD\assets" -Recurse -Include *.png,*.jpg,*.jpeg,*.webp,*.svg -ErrorAction SilentlyContinue
+
+Write-Host "Found the following images in assets:" -ForegroundColor Green
+$allImages | ForEach-Object { 
+    $rel = $_.FullName.Replace($PWD + '\', '').Replace('\', '/')
+    Write-Host "  -> $rel" -ForegroundColor Yellow 
+}
+
+$bikeAsset = "assets/images/bike.png"
+$autoAsset = "assets/images/auto.png"
+$carAsset = "assets/images/car.png"
+$parcelAsset = "assets/images/parcel.png"
+
+# ఆటోమేటిక్ గా ఫైల్స్ మ్యాచ్ చేస్తుంది
+foreach ($img in $allImages) {
+    $rel = $img.FullName.Replace($PWD + '\', '').Replace('\', '/')
+    if ($rel -match 'bike|motorcycle|two_wheeler') { $bikeAsset = $rel }
+    elseif ($rel -match 'auto|rickshaw') { $autoAsset = $rel }
+    elseif ($rel -match 'car|cab|taxi') { $carAsset = $rel }
+    elseif ($rel -match 'parcel|delivery|box') { $parcelAsset = $rel }
+}
+
+# హోమ్ స్క్రీన్ మరియు ఇతర ఫైల్స్ లోని అసెట్ పాత్‌లను కూడా చెక్ చేస్తుంది
+Get-ChildItem -Path "$PWD\lib" -Filter *.dart -Recurse | ForEach-Object {
+    $content = [System.IO.File]::ReadAllText($_.FullName)
+    $matches = [regex]::Matches($content, "['""](assets/[^'""]+\.(png|jpg|jpeg|svg|webp))['""]")
+    foreach ($m in $matches) {
+        $path = $m.Groups.Value
+        if ($path -match 'bike') { $bikeAsset = $path }
+        elseif ($path -match 'auto') { $autoAsset = $path }
+        elseif ($path -match 'car|cab') { $carAsset = $path }
+        elseif ($path -match 'parcel') { $parcelAsset = $path }
     }
 }
 
-# 2. Searching Partner స్క్రీన్ కోడ్ ను మీ అసలైన ఇమేజ్ లతో అప్‌డేట్ చేస్తుంది
-$code = @'
+Write-Host "------------------------------------------------------" -ForegroundColor Cyan
+Write-Host "Matched Original Vehicle Assets:" -ForegroundColor Green
+Write-Host "  Bike   : $bikeAsset" -ForegroundColor White
+Write-Host "  Auto   : $autoAsset" -ForegroundColor White
+Write-Host "  Car    : $carAsset" -ForegroundColor White
+Write-Host "  Parcel : $parcelAsset" -ForegroundColor White
+Write-Host "------------------------------------------------------" -ForegroundColor Cyan
+
+$code = @"
 import 'package:flutter/material.dart';
 
 class SearchingPartnerscreen extends StatefulWidget {
@@ -93,7 +121,7 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
           'title': 'Flash Bike',
           'fare': _fare == '\u20B926' ? '\u20B919' : _fare,
           'icon': Icons.two_wheeler_rounded,
-          'assetPath': 'assets/images/bike.png',
+          'assetPath': '$bikeAsset',
           'subText': 'Searching for nearby bike partner...',
           'areaText': 'Looking for bike partner in Nellore area',
         };
@@ -103,7 +131,7 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
           'title': 'Flash Car',
           'fare': _fare == '\u20B926' ? '\u20B949' : _fare,
           'icon': Icons.directions_car_rounded,
-          'assetPath': 'assets/images/car.png',
+          'assetPath': '$carAsset',
           'subText': 'Searching for nearby car partner...',
           'areaText': 'Looking for car partner in Nellore area',
         };
@@ -112,7 +140,7 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
           'title': 'Flash Parcel',
           'fare': _fare == '\u20B926' ? '\u20B935' : _fare,
           'icon': Icons.inventory_2_rounded,
-          'assetPath': 'assets/images/parcel.png',
+          'assetPath': '$parcelAsset',
           'subText': 'Searching for nearby delivery partner...',
           'areaText': 'Looking for delivery partner in Nellore area',
         };
@@ -122,7 +150,7 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
           'title': 'Flash Auto',
           'fare': _fare,
           'icon': Icons.electric_rickshaw,
-          'assetPath': 'assets/images/auto.png',
+          'assetPath': '$autoAsset',
           'subText': 'Searching for nearby partner...',
           'areaText': 'Looking for partner in Nellore area',
         };
@@ -345,7 +373,7 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
 
 typedef SearchingPartnerScreen = SearchingPartnerscreen;
 typedef SearchingCaptainScreen = SearchingPartnerscreen;
-'@
+"@
 
 $target1 = "$PWD\lib\screens\tracking\searching_partner_screen.dart"
 $target2 = "$PWD\lib\screens\tracking\searching_Partner_screen.dart"
@@ -353,11 +381,7 @@ $target2 = "$PWD\lib\screens\tracking\searching_Partner_screen.dart"
 [System.IO.File]::WriteAllText($target1, $code, [System.Text.Encoding]::UTF8)
 [System.IO.File]::WriteAllText($target2, $code, [System.Text.Encoding]::UTF8)
 
-# 3. Flutter pub get రన్ చేసి అసెట్స్ ను లోడ్ చేస్తుంది
-Write-Host "Running flutter pub get to link images..." -ForegroundColor Yellow
-flutter pub get
-
 Write-Host "======================================================" -ForegroundColor Cyan
-Write-Host "SUCCESS: All 4 original vehicle images linked perfectly!" -ForegroundColor Green
-Write-Host "Now press F5 in Chrome or 'R' in CMD to view." -ForegroundColor Cyan
+Write-Host "Radar screen updated with detected original assets!" -ForegroundColor Green
+Write-Host "Please press F5 in Chrome or 'R' in CMD to view." -ForegroundColor Yellow
 Write-Host "======================================================" -ForegroundColor Cyan

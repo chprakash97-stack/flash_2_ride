@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 
 class SupportScreen extends StatelessWidget {
@@ -9,7 +9,7 @@ class SupportScreen extends StatelessWidget {
     final List<String> issues = [
       'Lost an item during ride',
       'Charged higher than estimated fare',
-      'Captain refused duty / behaved rudely',
+      'Partner refused duty / behaved rudely',
       'Safety or vehicle cleanliness issue',
       'Payment & refund status',
     ];

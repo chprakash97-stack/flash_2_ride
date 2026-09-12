@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 
 class QrScanScreen extends StatelessWidget {
@@ -7,7 +7,7 @@ class QrScanScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan Captain QR')),
+      appBar: AppBar(title: const Text('Scan Partner QR')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/ride_provider.dart';
-import '../tracking/searching_captain_screen.dart';
+import '../tracking/searching_partner_screen.dart';
 
 class RideSelectionScreen extends StatelessWidget {
   const RideSelectionScreen({super.key});
@@ -144,7 +144,7 @@ class RideSelectionScreen extends StatelessWidget {
                       ride.startSearching();
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (c) => const SearchingCaptainScreen()),
+                        MaterialPageRoute(builder: (c) => const SearchingPartnerscreen()),
                       );
                     },
                     child: Text('Book ${ride.selectedOption?.title ?? "Ride"}', style: const TextStyle(color: Colors.white)),
