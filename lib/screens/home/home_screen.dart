@@ -1,3 +1,4 @@
+﻿import '../location/destination_search_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -244,9 +245,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           // 2. Location Pill: Current Location: Nellore, Andhra Pradesh (Image 1)
           GestureDetector(
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Opening Destination Search Screen...')),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const DestinationSearchScreen()));
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -495,3 +494,4 @@ class _NelloreMapPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _NelloreMapPainter oldDelegate) => true;
 }
+
