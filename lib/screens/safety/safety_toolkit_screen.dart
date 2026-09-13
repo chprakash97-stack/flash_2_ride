@@ -264,7 +264,7 @@ class _SafetyToolkitScreenState extends State<SafetyToolkitScreen> {
                   ),
                   Switch(
                     value: _audioRecording,
-                    activeColor: Colors.red,
+                    activeThumbColor: Colors.red,
                     onChanged: (val) {
                       setState(() => _audioRecording = val);
                       ScaffoldMessenger.of(context).showSnackBar(

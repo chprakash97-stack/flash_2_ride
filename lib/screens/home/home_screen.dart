@@ -1,4 +1,6 @@
-﻿import '../location/destination_search_screen.dart';
+﻿import '../features/power_pass_screen.dart';
+import '../features/wallet_screen.dart';
+import '../location/destination_search_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -397,7 +399,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           ListTile(leading: const Icon(Icons.local_taxi_rounded, color: Color(0xFF0058FF)), title: const Text('Book Ride'), onTap: () => Navigator.pop(context)),
           ListTile(leading: const Icon(Icons.history_rounded), title: const Text('Ride History'), onTap: () => Navigator.pop(context)),
-          ListTile(leading: const Icon(Icons.account_balance_wallet_outlined), title: const Text('Flash Wallet'), onTap: () => Navigator.pop(context)),
+            ListTile(leading: const Icon(Icons.account_balance_wallet_outlined), title: const Text('Flash Wallet'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen())); }),
+ListTile(
+              leading: const Icon(Icons.bolt_rounded),
+              title: const Text('Power Pass (Subscriptions)'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const PowerPassScreen()));
+              },
+            ),
           ListTile(leading: const Icon(Icons.security_rounded), title: const Text('Safety Toolkit'), onTap: () => Navigator.pop(context)),
           ListTile(leading: const Icon(Icons.settings_outlined), title: const Text('Settings'), onTap: () => Navigator.pop(context)),
           const Divider(),

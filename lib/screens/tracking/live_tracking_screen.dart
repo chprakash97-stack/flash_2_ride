@@ -1,4 +1,5 @@
-﻿import '../../views/safety/safety_toolkit_screen.dart';
+﻿import '../post_ride/rating_tip_screen.dart';
+import '../safety/safety_toolkit_screen.dart';
 import 'package:flutter/material.dart';
 import '../ride/in_ride_chat_screen.dart';
 
@@ -45,6 +46,12 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
         backgroundColor: const Color(0xFF0066FF),
         elevation: 0,
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const RatingTipScreen()));
+            },
+            child: const Text('Complete (Demo)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
           IconButton(
             icon: const Icon(Icons.security_rounded, color: Colors.white),
             tooltip: 'Safety Toolkit',

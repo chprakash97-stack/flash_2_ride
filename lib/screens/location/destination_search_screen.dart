@@ -1,5 +1,5 @@
-﻿import 'package:flutter/material.dart';
-import '../booking/ride_category_screen.dart';
+﻿import 'map_pin_picker_screen.dart';
+import 'package:flutter/material.dart';
 
 class DestinationSearchScreen extends StatefulWidget {
   const DestinationSearchScreen({super.key});
@@ -44,7 +44,7 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const RideCategoryScreen(),
+        builder: (context) => const MapPinPickerScreen(),
       ),
     );
   }

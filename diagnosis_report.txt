@@ -1,0 +1,352 @@
+﻿=== FLASH2RIDE NAVIGATION & FLOW DIAGNOSTIC REPORT ===
+Timestamp: 09/12/2026 23:43:23
+
+--- 1. APP ENTRY POINT & ROUTE CONFIGURATION ---
+[lib\main.dart]
+        home: const SplashScreen(),
+
+[lib\core\config\routes.dart]
+  static const String home = '/home';
+  static const String wallet = '/wallet';
+  static const String rideHistory = '/ride-history';
+  static const String safetyToolkit = '/safety-toolkit';
+  static const String userProfile = '/user-profile';
+  static const String locationSearch = '/location-search';
+  static const String rideSelection = '/ride-selection';
+
+--- 2. ALL FILES & CODE WITH 'Confirm' BUTTON ---
+FILE: \lib\screens\booking\qr_payment_screen.dart
+  Line 337:
+            ),
+            const SizedBox(height: 18),
+
+            // Solid Blue CTA Button: Confirm Payment
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+
+  Line 360:
+                  );
+                },
+                child: const Text(
+                  'Confirm Payment & Track Partner',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+FILE: \lib\screens\booking\ride_selection_screen.dart
+  Line 17:
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(title: const Text('Confirm Ride')),
+      body: Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
+
+FILE: \lib\screens\booking\schedule_ride_screen.dart
+  Line 62:
+    }
+  }
+
+  void _handleConfirmSchedule() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const HourlyRentalsScreen(),
+      ),
+
+  Line 269:
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                  ),
+                  onPressed: _handleConfirmSchedule,
+                  child: const Text(
+                    'Schedule Ride',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  ),
+                ),
+
+FILE: \lib\screens\features\power_pass_screen.dart
+  Line 78:
+                      ),
+                    );
+                  },
+                  child: const Text('Confirm & Pay', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        );
+
+FILE: \lib\screens\home\location_search_screen.dart
+  Line 176:
+              },
+            ),
+          ),
+          // à°ªà±‹à°¸à±à°Ÿà°°à± à°²à±‹à°¨à°¿ Bottom Confirm à°¬à°Ÿà°¨à± (Section 2 Screen 2)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, -2))],
+
+  Line 196:
+                  final sel = _filteredPlaces.isNotEmpty ? _filteredPlaces.first : _allPlaces.first;
+                  _selectDestination(sel);
+                },
+                child: const Text('Confirm', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              ),
+            ),
+          ),
+        ],
+      ),
+
+FILE: \lib\screens\home\map_pin_picker_screen.dart
+  Line 204:
+            ),
+          ),
+
+          // à°ªà±‹à°¸à±à°Ÿà°°à± à°²à±‹à°¨à°¿ Selected Location à°•à°¾à°°à±à°¡à± & Confirm à°¬à°Ÿà°¨à±
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+
+  Line 252:
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Location Confirmed: ${currentLocation['title']}'),
+                            backgroundColor: const Color(0xFF00A859),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                        // à°‡à°•à±à°•à°¡à°¿ Confirm à°¨à±Šà°•à±à°•à°¿à°¨à°ªà±à°ªà±à°¡à± à°®à°¾à°¤à±à°°à°®à±‡ à°¤à°°à±à°µà°¾à°¤à°¿ à°¸à±à°•à±à°°à±€à°¨à± à°…à°¯à°¿à°¨ "à°šà±‚à°¸à°¿à°‚à°—à± à°°à±ˆà°¡à± à°Ÿà±ˆà°ªà±à°¸à±" à°•à°¿ à°µà±†à°³à±à°²à°¡à°‚
+
+  Line 257:
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                        // à°‡à°•à±à°•à°¡à°¿ Confirm à°¨à±Šà°•à±à°•à°¿à°¨à°ªà±à°ªà±à°¡à± à°®à°¾à°¤à±à°°à°®à±‡ à°¤à°°à±à°µà°¾à°¤à°¿ à°¸à±à°•à±à°°à±€à°¨à± à°…à°¯à°¿à°¨ "à°šà±‚à°¸à°¿à°‚à°—à± à°°à±ˆà°¡à± à°Ÿà±ˆà°ªà±à°¸à±" à°•à°¿ à°µà±†à°³à±à°²à°¡à°‚
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.rideSelection,
+                          arguments: {
+                            'destination': currentLocation['title'],
+
+  Line 268:
+                        );
+                      },
+                      child: const Text(
+                        'Confirm',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+
+FILE: \lib\screens\location\destination_search_screen.dart
+  Line 43:
+    super.dispose();
+  }
+
+  void _handleConfirm() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const RideCategoryScreen(),
+      ),
+
+  Line 292:
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                  ),
+                  onPressed: _handleConfirm,
+                  child: const Text(
+                    'Confirm',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  ),
+                ),
+
+  Line 294:
+                  ),
+                  onPressed: _handleConfirm,
+                  child: const Text(
+                    'Confirm',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  ),
+                ),
+              ),
+            ),
+
+FILE: \lib\screens\location\map_pin_picker_screen.dart
+  Line 32:
+    super.dispose();
+  }
+
+    void _handleConfirmLocation() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RideCategoryScreen(destination: _currentSelectedLocation),
+      ),
+
+  Line 185:
+            ),
+          ),
+
+          // 5. Bottom Selected Location Card & Confirm Button (Roadmap #7)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 20,
+            child: Container(
+
+  Line 256:
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                      ),
+                      onPressed: _handleConfirmLocation,
+                      child: const Text(
+                        'Confirm',
+                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                      ),
+                    ),
+
+  Line 258:
+                      ),
+                      onPressed: _handleConfirmLocation,
+                      child: const Text(
+                        'Confirm',
+                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                      ),
+                    ),
+                  ),
+                ],
+
+FILE: \lib\screens\ride\cancel_ride_dialog.dart
+  Line 30:
+    super.dispose();
+  }
+
+  void _confirmCancellation() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        backgroundColor: Colors.red,
+        content: Text('Ride cancelled successfully. Zero cancellation fee applied.'),
+      ),
+
+  Line 261:
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: _confirmCancellation,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+
+FILE: \lib\screens\safety\safety_toolkit_screen.dart
+  Line 49:
+                ),
+              );
+            },
+            child: const Text('Confirm SOS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+--- 3. ALL SCREENS WITH 'Pickup' OR 'Where to' ---
+FILE: \lib\providers\ride_provider.dart
+  Line 7: class RideProvider extends ChangeNotifier {
+FILE: \lib\screens\booking\destination_search_screen.dart
+  Line 7: class DestinationSearchScreen extends StatefulWidget {
+  Line 14: class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
+FILE: \lib\screens\booking\qr_payment_screen.dart
+  Line 8: class QrPaymentScreen extends StatefulWidget {
+  Line 16: class _QrPaymentScreenState extends State<QrPaymentScreen> with SingleTickerProviderStateMixin {
+  Line 387: class _PosterBracketsPainter extends CustomPainter {
+  Line 423: class _SharpQrPainter extends CustomPainter {
+FILE: \lib\screens\booking\ride_category_screen.dart
+  Line 4: class RideCategoryScreen extends StatefulWidget {
+  Line 24: class _RideCategoryScreenState extends State<RideCategoryScreen> {
+  Line 342: class _MapGridPainter extends CustomPainter {
+  Line 361: class _RoutePainter extends CustomPainter {
+FILE: \lib\screens\booking\ride_selection_screen.dart
+  Line 7: class RideSelectionScreen extends StatelessWidget {
+FILE: \lib\screens\booking\schedule_ride_screen.dart
+  Line 4: class ScheduleRideScreen extends StatefulWidget {
+  Line 20: class _ScheduleRideScreenState extends State<ScheduleRideScreen> {
+FILE: \lib\screens\home\home_screen.dart
+  Line 6: class HomeScreen extends StatefulWidget {
+  Line 13: class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  Line 209: // Official Where to? & 4 Vehicles Card matching Demo Image 3
+  Line 229: // 1. "Where to?" Title Row (Image 1)
+  Line 235: 'Where to?',
+  Line 422: class _NelloreMapPainter extends CustomPainter {
+FILE: \lib\screens\home\location_search_screen.dart
+  Line 7: class LocationSearchScreen extends StatefulWidget {
+  Line 15: class _LocationSearchScreenState extends State<LocationSearchScreen> {
+  Line 63: 'Pickup Location',
+  Line 86: hintText: 'Pickup Location',
+  Line 109: hintText: 'Where to? (e.g. Nellore Bus Stand, Magunta)',
+FILE: \lib\screens\location\destination_search_screen.dart
+  Line 4: class DestinationSearchScreen extends StatefulWidget {
+  Line 11: class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
+  Line 64: 'Pickup Location',
+FILE: \lib\screens\ride\cancel_ride_dialog.dart
+  Line 3: class CancelRideDialog extends StatefulWidget {
+  Line 11: class _CancelRideDialogState extends State<CancelRideDialog> {
+  Line 17: 'Wrong pickup location picked',
+FILE: \lib\screens\ride\in_ride_chat_screen.dart
+  Line 4: class InRideChatScreen extends StatefulWidget {
+  Line 12: class _InRideChatScreenState extends State<InRideChatScreen> {
+  Line 35: 'I am at pickup location',
+FILE: \lib\screens\ride\live_tracking_screen.dart
+  Line 6: class LiveTrackingScreen extends StatefulWidget {
+  Line 14: class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTickerProviderStateMixin {
+  Line 410: class _MapRoutePainter extends CustomPainter {
+FILE: \lib\screens\tracking\live_tracking_screen.dart
+  Line 6: class LiveTrackingScreen extends StatefulWidget {
+  Line 14: class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTickerProviderStateMixin {
+  Line 410: class _MapRoutePainter extends CustomPainter {
+
+--- 4. ALL NAVIGATION CALLS TO 'rideSelection' OR 'RideCategory' ---
+FILE: \lib\core\config\routes.dart
+  Line 8: static const String rideSelection = '/ride-selection';
+FILE: \lib\screens\booking\ride_category_screen.dart
+  Line 4: class RideCategoryScreen extends StatefulWidget {
+  Line 11: const RideCategoryScreen({
+  Line 21: State<RideCategoryScreen> createState() => _RideCategoryScreenState();
+  Line 24: class _RideCategoryScreenState extends State<RideCategoryScreen> {
+  Line 64: Navigator.push(
+  Line 102: 'Choose Ride Type',
+FILE: \lib\screens\booking\ride_selection_screen.dart
+  Line 7: class RideSelectionScreen extends StatelessWidget {
+  Line 8: const RideSelectionScreen({super.key});
+  Line 145: Navigator.pushReplacement(
+FILE: \lib\screens\home\map_pin_picker_screen.dart
+  Line 258: Navigator.pushNamed(
+  Line 260: AppRoutes.rideSelection,
+FILE: \lib\screens\location\destination_search_screen.dart
+  Line 44: Navigator.push(
+  Line 47: builder: (context) => const RideCategoryScreen(),
+FILE: \lib\screens\location\map_pin_picker_screen.dart
+  Line 33: Navigator.push(
+  Line 36: builder: (context) => RideCategoryScreen(destination: _currentSelectedLocation),
+
+--- 5. MAP PIN PICKER SCREEN STATUS ---
+FOUND: \lib\screens\home\map_pin_picker_screen.dart (Size: 14197 bytes)
+FOUND: \lib\screens\location\map_pin_picker_screen.dart (Size: 12701 bytes)

@@ -1,4 +1,5 @@
-﻿import 'dart:async';
+﻿import '../ride/cancel_ride_dialog.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'live_tracking_screen.dart';
 
@@ -187,9 +188,9 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
           onPressed: () {
-            _autoTransitionTimer?.cancel();
-            Navigator.maybePop(context);
-          },
+                        _autoTransitionTimer?.cancel();
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const CancelRideDialog()));
+                      },
         ),
         title: const Text(
           'Searching Partner',
@@ -396,7 +397,7 @@ class _SearchingPartnerscreenState extends State<SearchingPartnerscreen> with Si
                     child: OutlinedButton(
                       onPressed: () {
                         _autoTransitionTimer?.cancel();
-                        Navigator.maybePop(context);
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const CancelRideDialog()));
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.red, width: 1.5),

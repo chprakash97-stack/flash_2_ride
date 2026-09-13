@@ -1,8 +1,10 @@
-﻿import 'package:flutter/material.dart';
-import 'street_qr_scan_screen.dart';
+﻿import '../home/home_screen.dart';
+import 'qr_payment_screen.dart';
+import 'package:flutter/material.dart';
 
 class FlashParcelScreen extends StatefulWidget {
-  const FlashParcelScreen({super.key});
+  final dynamic data;
+  const FlashParcelScreen({super.key, this.data});
 
   @override
   State<FlashParcelScreen> createState() => _FlashParcelScreenState();
@@ -11,15 +13,52 @@ class FlashParcelScreen extends StatefulWidget {
 class _FlashParcelScreenState extends State<FlashParcelScreen> {
   final TextEditingController _nameController = TextEditingController(text: 'Suresh Kumar');
   final TextEditingController _phoneController = TextEditingController(text: '+91 98765 43210');
-  String _selectedParcelType = 'Documents';
+  String _selectedType = 'Documents';
 
-  final List<Map<String, dynamic>> _parcelTypes = const [
-    {'id': 'Documents', 'label': 'Documents', 'icon': Icons.description_outlined},
-    {'id': 'Clothes', 'label': 'Clothes', 'icon': Icons.checkroom_outlined},
-    {'id': 'Electronics', 'label': 'Electronics', 'icon': Icons.devices_outlined},
-    {'id': 'Medicines', 'label': 'Medicines', 'icon': Icons.medication_outlined},
-    {'id': 'Food', 'label': 'Food', 'icon': Icons.fastfood_outlined},
-    {'id': 'Others', 'label': 'Others', 'icon': Icons.inventory_2_outlined},
+  // à°•à±Šà°¤à±à°¤ 3D à°‡à°®à±‡à°œà± à°®à±‹à°¡à°²à±à°¸à± à°²à°¿à°¸à±à°Ÿà±
+  final List<Map<String, dynamic>> _parcelTypes = [
+    {
+      'title': 'Documents',
+      'image': 'assets/images/parcel/documents.png',
+      'icon': Icons.description_rounded,
+      'color': const Color(0xFF0058FF),
+      'bgColor': const Color(0xFFEFF6FF),
+    },
+    {
+      'title': 'Clothes',
+      'image': 'assets/images/parcel/clothes.png',
+      'icon': Icons.checkroom_rounded,
+      'color': const Color(0xFF8B5CF6),
+      'bgColor': const Color(0xFFF5F3FF),
+    },
+    {
+      'title': 'Electronics',
+      'image': 'assets/images/parcel/electronics.png',
+      'icon': Icons.devices_other_rounded,
+      'color': const Color(0xFFFF9500),
+      'bgColor': const Color(0xFFFFF7ED),
+    },
+    {
+      'title': 'Medicines',
+      'image': 'assets/images/parcel/medicines.png',
+      'icon': Icons.medical_services_rounded,
+      'color': const Color(0xFF00A859),
+      'bgColor': const Color(0xFFE8F8F0),
+    },
+    {
+      'title': 'Food',
+      'image': 'assets/images/parcel/food.png',
+      'icon': Icons.restaurant_rounded,
+      'color': const Color(0xFFEF4444),
+      'bgColor': const Color(0xFFFEF2F2),
+    },
+    {
+      'title': 'Others',
+      'image': 'assets/images/parcel/others.png',
+      'icon': Icons.inventory_2_rounded,
+      'color': const Color(0xFF6366F1),
+      'bgColor': const Color(0xFFEEF2FF),
+    },
   ];
 
   @override
@@ -29,165 +68,147 @@ class _FlashParcelScreenState extends State<FlashParcelScreen> {
     super.dispose();
   }
 
-  void _handleBookParcel() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const StreetQrScanScreen(),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0058FF),
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          tooltip: 'Back',
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const HomeScreen()),
+              );
+            }
+          },
         ),
         title: const Text(
           'Flash Parcel',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
         ),
+        backgroundColor: const Color(0xFF0058FF),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Receiver Name
                     const Text(
                       'Receiver Name',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF475569),
-                      ),
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
                     ),
-                    const SizedBox(height: 6),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: TextField(
-                        controller: _nameController,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF0F172A),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _nameController,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Color(0xFF1E293B)),
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF0058FF)),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                         ),
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.person_outline_rounded, color: Color(0xFF0058FF)),
-                          hintText: 'Enter receiver name',
-                          hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    const Text(
-                      'Mobile Number',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF475569),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: TextField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF0F172A),
-                        ),
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.phone_outlined, color: Color(0xFF0058FF)),
-                          hintText: '+91 Mobile Number',
-                          hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFF0058FF), width: 1.5),
                         ),
                       ),
                     ),
                     const SizedBox(height: 18),
+
+                    // Mobile Number
                     const Text(
-                      'Parcel Type',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
+                      'Mobile Number',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Color(0xFF1E293B)),
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF0058FF)),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFF0058FF), width: 1.5),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 22),
+
+                    // Parcel Type à°¹à±†à°¡à°°à±
+                    const Text(
+                      'Parcel Type',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // à°•à±Šà°¤à±à°¤ à°®à±‹à°¡à°²à± à°¬à±Šà°®à±à°®à°²à°¤à±‹ 78x78 à°¸à±ˆà°œà± à°•à°¾à°°à±à°¡à±à°¸à±
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
-                        mainAxisSpacing: 10,
-                        crossAxisSpacing: 10,
-                        childAspectRatio: 1.1,
+                        childAspectRatio: 0.80, // à°«à±à°²à± à°¸à±ˆà°œà± à°¬à±Šà°®à±à°® à°¸à°°à°¿à°ªà±‹à°¯à±‡à°²à°¾ à°¸à±à°ªà±‡à°¸à±
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
                       ),
                       itemCount: _parcelTypes.length,
                       itemBuilder: (context, index) {
-                        final type = _parcelTypes[index];
-                        final isSelected = _selectedParcelType == type['id'];
+                        final item = _parcelTypes[index];
+                        final isSelected = _selectedType == item['title'];
+                        final Color color = item['color'] as Color;
+                        final Color bgColor = item['bgColor'] as Color;
 
-                        return GestureDetector(
+                        return InkWell(
                           onTap: () {
                             setState(() {
-                              _selectedParcelType = type['id'] as String;
+                              _selectedType = item['title'] as String;
                             });
                           },
+                          borderRadius: BorderRadius.circular(16),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
                             decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF0058FF).withValues(alpha: 0.08) : Colors.white,
-                              borderRadius: BorderRadius.circular(14),
+                              color: isSelected ? bgColor.withOpacity(0.45) : Colors.white,
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: isSelected ? const Color(0xFF0058FF) : const Color(0xFFE2E8F0),
-                                width: isSelected ? 2 : 1,
+                                color: isSelected ? color : const Color(0xFFE2E8F0),
+                                width: isSelected ? 2.0 : 1.0,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: isSelected ? 0.06 : 0.02),
-                                  blurRadius: 6,
+                                  color: isSelected ? color.withOpacity(0.18) : Colors.black.withOpacity(0.03),
+                                  blurRadius: isSelected ? 10 : 4,
                                   offset: const Offset(0, 2),
                                 ),
                               ],
@@ -195,26 +216,49 @@ class _FlashParcelScreenState extends State<FlashParcelScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(7),
-                                  decoration: BoxDecoration(
-                                    color: isSelected ? const Color(0xFF0058FF).withValues(alpha: 0.15) : const Color(0xFFF1F5F9),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    type['icon'] as IconData,
-                                    color: isSelected ? const Color(0xFF0058FF) : const Color(0xFF475569),
-                                    size: 20,
-                                  ),
+                                Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    // à°•à±Šà°¤à±à°¤ 3D à°¬à±Šà°®à±à°® à°¸à±ˆà°œà±à°¨à± 78x78 à°•à°¿ à°ªà±†à°‚à°šà°¿ à°¨à°¿à°‚à°¡à±à°—à°¾ à°•à°¨à°¿à°ªà°¿à°‚à°šà±‡à°²à°¾ à°šà±‡à°¯à°¡à°‚
+                                    SizedBox(
+                                      height: 78,
+                                      width: 78,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Image.asset(
+                                          item['image'] as String,
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (ctx, err, stack) {
+                                            return CircleAvatar(
+                                              backgroundColor: bgColor,
+                                              radius: 32,
+                                              child: Icon(item['icon'] as IconData, color: color, size: 30),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    if (isSelected)
+                                      Positioned(
+                                        top: -2,
+                                        right: -2,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(3),
+                                          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                                          child: const Icon(Icons.check, color: Colors.white, size: 12),
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 8),
                                 Text(
-                                  type['label'] as String,
+                                  item['title'] as String,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 12.5,
                                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                    color: isSelected ? const Color(0xFF0058FF) : const Color(0xFF334155),
+                                    color: isSelected ? color : const Color(0xFF1E293B),
                                   ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ],
                             ),
@@ -222,9 +266,11 @@ class _FlashParcelScreenState extends State<FlashParcelScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 20),
+
+                    // Weight Limit
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(12),
@@ -237,7 +283,7 @@ class _FlashParcelScreenState extends State<FlashParcelScreen> {
                           Expanded(
                             child: Text(
                               'Weight limit up to 5 kg \u2022 Secure doorstep delivery in Nellore',
-                              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF)),
+                              style: TextStyle(fontSize: 11, color: Color(0xFF1E40AF), fontWeight: FontWeight.w500),
                             ),
                           ),
                         ],
@@ -247,10 +293,10 @@ class _FlashParcelScreenState extends State<FlashParcelScreen> {
                 ),
               ),
             ),
-            Container(
-              width: double.infinity,
-              color: Colors.white,
-              padding: const EdgeInsets.all(16),
+
+            // Book Parcel à°¬à°Ÿà°¨à±
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -258,13 +304,26 @@ class _FlashParcelScreenState extends State<FlashParcelScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0058FF),
                     foregroundColor: Colors.white,
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  onPressed: _handleBookParcel,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const QrPaymentScreen(),
+                      ),
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Flash Parcel order placed for $_selectedType to ${_nameController.text}!'),
+                        backgroundColor: const Color(0xFF00A859),
+                      ),
+                    );
+                  },
                   child: const Text(
                     'Book Parcel',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
