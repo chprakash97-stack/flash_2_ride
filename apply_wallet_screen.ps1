@@ -1,4 +1,11 @@
-﻿import 'package:flutter/material.dart';
+# ==========================================================
+# Flash2Ride - Update ONLY Flash Wallet Screen from Poster
+# ==========================================================
+Write-Host "Updating Flash Wallet Screen from Poster design..." -ForegroundColor Cyan
+
+# Complete Flash Wallet Screen code matching Section 6 of the Poster
+$walletScreenCode = @'
+import 'package:flutter/material.dart';
 
 class WalletScreen extends StatefulWidget {
   final dynamic data;
@@ -270,3 +277,17 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 }
+'@
+
+# ONLY update wallet_screen files, touching NOTHING ELSE in the project
+if (Test-Path "lib\screens\features") {
+    Set-Content -Path "lib\screens\features\wallet_screen.dart" -Value $walletScreenCode -Encoding UTF8
+    Write-Host "[OK] Updated lib\screens\features\wallet_screen.dart" -ForegroundColor Green
+}
+if (Test-Path "lib\views\wallet") {
+    Set-Content -Path "lib\views\wallet\wallet_screen.dart" -Value $walletScreenCode -Encoding UTF8
+    Write-Host "[OK] Updated lib\views\wallet\wallet_screen.dart" -ForegroundColor Green
+}
+
+Write-Host "`nRunning flutter analyze verification..." -ForegroundColor Cyan
+flutter analyze

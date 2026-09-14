@@ -1,5 +1,4 @@
-﻿import '../features/refer_earn_screen.dart';
-import '../features/power_pass_screen.dart';
+﻿import '../features/power_pass_screen.dart';
 import '../features/wallet_screen.dart';
 import '../location/destination_search_screen.dart';
 import 'package:flutter/material.dart';
@@ -384,94 +383,35 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-    Widget _buildDrawer() {
+  Widget _buildDrawer() {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           const UserAccountsDrawerHeader(
-            decoration: BoxDecoration(color: Color(0xFF2563EB)),
-            accountName: Text('Ramesh Kumar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            accountEmail: Text('ramesh@gmail.com'),
+            decoration: BoxDecoration(color: Color(0xFF0058FF)),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
-              child: Icon(Icons.person, color: Color(0xFF2563EB), size: 40),
+              child: Icon(Icons.person, size: 40, color: Color(0xFF0058FF)),
             ),
+            accountName: Text('Ramesh Kumar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+            accountEmail: Text('ramesh@gmail.com', style: TextStyle(color: Colors.white70)),
           ),
-          // 1. Refer & Earn (Emerald Green)
-          ListTile(
-            leading: const Icon(Icons.card_giftcard_rounded, color: Color(0xFF10B981)),
-            title: const Text('Refer & Earn'),
-            subtitle: const Text('Get \u20B950 Wallet Bonus'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ReferEarnScreen()),
-              );
-            },
-          ),
-          // 2. Book Ride (Royal Blue)
-          ListTile(
-            leading: const Icon(Icons.directions_car_rounded, color: Color(0xFF2563EB)),
-            title: const Text('Book Ride'),
-            onTap: () => Navigator.pop(context),
-          ),
-          // 3. Ride History (Rich Purple)
-          ListTile(
-            leading: const Icon(Icons.history_rounded, color: Color(0xFF8B5CF6)),
-            title: const Text('Ride History'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/ride-history');
-            },
-          ),
-          // 4. Flash Wallet (Golden Amber)
-          ListTile(
-            leading: const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFFF59E0B)),
-            title: const Text('Flash Wallet'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/wallet');
-            },
-          ),
-          // 5. Power Pass (Subscriptions) (Vibrant Orange)
-          ListTile(
-            leading: const Icon(Icons.bolt_rounded, color: Color(0xFFFF9800)),
-            title: const Text('Power Pass (Subscriptions)'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/power-pass');
-            },
-          ),
-          // 6. Safety Toolkit (Safety Coral Red)
-          ListTile(
-            leading: const Icon(Icons.shield_outlined, color: Color(0xFFEF4444)),
-            title: const Text('Safety Toolkit'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/safety-toolkit');
-            },
-          ),
-          // 7. Settings (Ocean Blue)
-          ListTile(
-            leading: const Icon(Icons.settings_outlined, color: Color(0xFF0EA5E9)),
-            title: const Text('Settings'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/profile-settings');
-            },
-          ),
+          ListTile(leading: const Icon(Icons.local_taxi_rounded, color: Color(0xFF0058FF)), title: const Text('Book Ride'), onTap: () => Navigator.pop(context)),
+          ListTile(leading: const Icon(Icons.history_rounded), title: const Text('Ride History'), onTap: () => Navigator.pop(context)),
+            ListTile(leading: const Icon(Icons.account_balance_wallet_outlined), title: const Text('Flash Wallet'), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen())); }),
+ListTile(
+              leading: const Icon(Icons.bolt_rounded),
+              title: const Text('Power Pass (Subscriptions)'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const PowerPassScreen()));
+              },
+            ),
+          ListTile(leading: const Icon(Icons.security_rounded), title: const Text('Safety Toolkit'), onTap: () => Navigator.pop(context)),
+          ListTile(leading: const Icon(Icons.settings_outlined), title: const Text('Settings'), onTap: () => Navigator.pop(context)),
           const Divider(),
-          // 8. Logout (Deep Red)
-          ListTile(
-            leading: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
-            title: const Text('Logout', style: TextStyle(color: Color(0xFFDC2626))),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-            },
-          ),
+          ListTile(leading: const Icon(Icons.logout_rounded, color: Colors.redAccent), title: const Text('Logout', style: TextStyle(color: Colors.redAccent)), onTap: () => Navigator.pop(context)),
         ],
       ),
     );
@@ -564,7 +504,4 @@ class _NelloreMapPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _NelloreMapPainter oldDelegate) => true;
 }
-
-
-
 

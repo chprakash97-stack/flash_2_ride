@@ -1,4 +1,10 @@
-﻿import 'package:flutter/material.dart';
+# ==========================================================
+# Flash2Ride - Fix Rupee Symbol Display (No Encoding Errors)
+# ==========================================================
+Write-Host "Fixing Rupee symbol encoding in Refer & Earn..." -ForegroundColor Cyan
+
+$cleanScreenCode = @'
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class ReferEarnScreen extends StatefulWidget {
@@ -397,3 +403,20 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
     );
   }
 }
+'@
+
+Set-Content -Path "lib\screens\features\refer_earn_screen.dart" -Value $cleanScreenCode -Encoding UTF8
+Set-Content -Path "lib\views\rewards\refer_earn_screen.dart" -Value $cleanScreenCode -Encoding UTF8
+Write-Host "[OK] Cleaned Rupee symbol in Refer and Earn screen" -ForegroundColor Green
+
+# Update home_screen drawer subtitle
+$homeFile = "lib\screens\home\home_screen.dart"
+if (Test-Path $homeFile) {
+    $hc = Get-Content $homeFile -Raw
+    $hc = $hc -replace "Get [^\s]+50 Wallet Bonus", "Get \u20B950 Wallet Bonus"
+    Set-Content -Path $homeFile -Value $hc -Encoding UTF8
+    Write-Host "[OK] Cleaned Rupee symbol in home_screen.dart drawer" -ForegroundColor Green
+}
+
+Write-Host "`nRunning flutter analyze verification..." -ForegroundColor Cyan
+flutter analyze

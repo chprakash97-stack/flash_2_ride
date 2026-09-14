@@ -1,5 +1,17 @@
-﻿import 'package:flutter/material.dart';
+# ==========================================================
+# Flash2Ride - Generate Refer and Earn Screen (Clean & Fixed)
+# ==========================================================
+Write-Host "Creating Refer and Earn Screen..." -ForegroundColor Cyan
+
+# 1. Ensure target directories exist
+if (!(Test-Path "lib\screens\features")) { New-Item -ItemType Directory -Path "lib\screens\features" -Force | Out-Null }
+if (!(Test-Path "lib\views\rewards")) { New-Item -ItemType Directory -Path "lib\views\rewards" -Force | Out-Null }
+
+# 2. Refer & Earn Screen Dart Code
+$referEarnCode = @'
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/constants/app_colors.dart';
 
 class ReferEarnScreen extends StatefulWidget {
   final dynamic data;
@@ -19,7 +31,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Referral code copied to clipboard!'),
-        backgroundColor: Color(0xFF00A859),
+        backgroundColor: AppColors.primary,
         duration: Duration(seconds: 2),
       ),
     );
@@ -41,13 +53,13 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
           'Refer & Earn',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        backgroundColor: const Color(0xFF00A859),
+        backgroundColor: AppColors.primary,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -56,7 +68,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Hero Banner
+            // Hero Banner: Invite Friends & Get Bonus
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -71,25 +83,25 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
               ),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: const [
                         Text(
                           'Invite Friends',
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1F2937),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         SizedBox(height: 6),
                         Text(
-                          'Get \u20B950 Wallet Bonus',
+                          'Get ₹50 Wallet Bonus',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF007A3D),
+                            color: AppColors.primaryDark,
                           ),
                         ),
                       ],
@@ -99,12 +111,12 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                     width: 58,
                     height: 58,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00A859).withValues(alpha: 0.15),
+                      color: AppColors.primary.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.card_giftcard_rounded,
-                      color: Color(0xFF00A859),
+                      color: AppColors.primary,
                       size: 34,
                     ),
                   ),
@@ -118,9 +130,9 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
+                border: Border.all(color: AppColors.border),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),
@@ -137,16 +149,17 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF6B7280),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 12),
+                  // Code Box
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8F9FA),
+                      color: AppColors.background,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF00A859).withValues(alpha: 0.4), width: 1.5),
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.4), width: 1.5),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -157,7 +170,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 2.0,
-                            color: Color(0xFF1F2937),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         ElevatedButton.icon(
@@ -172,7 +185,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _copied ? const Color(0xFF10B981) : const Color(0xFF00A859),
+                            backgroundColor: _copied ? AppColors.success : AppColors.primary,
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -184,6 +197,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // Share via WhatsApp Button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -214,7 +228,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1F2937),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -222,9 +236,9 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
+                border: Border.all(color: AppColors.border),
               ),
               child: Column(
                 children: [
@@ -236,13 +250,13 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1F2937),
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE8F8F0),
+                          color: AppColors.primaryLight,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
@@ -250,13 +264,14 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF00A859),
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
+                  // ₹50 per friend card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
@@ -275,20 +290,20 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                           ),
                           child: const Icon(
                             Icons.monetization_on_rounded,
-                            color: Color(0xFF00A859),
+                            color: AppColors.primary,
                             size: 24,
                           ),
                         ),
                         const SizedBox(width: 14),
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                          children: const [
                             Text(
-                              '\u20B950 per friend',
+                              '₹50 per friend',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF007A3D),
+                                color: AppColors.primaryDark,
                               ),
                             ),
                             SizedBox(height: 2),
@@ -296,7 +311,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                               '(when they complete 1 ride)',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Color(0xFF6B7280),
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -315,7 +330,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1F2937),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -323,9 +338,9 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
+                border: Border.all(color: AppColors.border),
               ),
               child: Column(
                 children: [
@@ -343,8 +358,8 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                   const Divider(height: 24),
                   _buildStep(
                     icon: Icons.account_balance_wallet_rounded,
-                    title: '3. Earn \u20B950 Cash Bonus',
-                    subtitle: '\u20B950 is instantly credited to your Flash Wallet for your rides!',
+                    title: '3. Earn ₹50 Cash Bonus',
+                    subtitle: '₹50 is instantly credited to your Flash Wallet for your rides!',
                   ),
                 ],
               ),
@@ -365,8 +380,8 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
       children: [
         CircleAvatar(
           radius: 18,
-          backgroundColor: const Color(0xFFE8F8F0),
-          child: Icon(icon, size: 18, color: const Color(0xFF00A859)),
+          backgroundColor: AppColors.primaryLight,
+          child: Icon(icon, size: 18, color: AppColors.primary),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -378,7 +393,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 3),
@@ -386,7 +401,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                 subtitle,
                 style: const TextStyle(
                   fontSize: 13,
-                  color: Color(0xFF6B7280),
+                  color: AppColors.textSecondary,
                   height: 1.3,
                 ),
               ),
@@ -397,3 +412,28 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
     );
   }
 }
+'@
+
+# Save screen files
+Set-Content -Path "lib\screens\features\refer_earn_screen.dart" -Value $referEarnCode -Encoding UTF8
+Set-Content -Path "lib\views\rewards\refer_earn_screen.dart" -Value $referEarnCode -Encoding UTF8
+Write-Host "[1/2] Created Refer and Earn screens in lib\screens\features and lib\views\rewards" -ForegroundColor Green
+
+# 3. Update routes.dart
+$routesFile = "lib\core\config\routes.dart"
+if (Test-Path $routesFile) {
+    $routesContent = Get-Content $routesFile -Raw
+    if ($routesContent -notmatch "referEarn") {
+        $importLine = "import '../../screens/features/refer_earn_screen.dart';`r`n"
+        $routesContent = $importLine + $routesContent
+        $routesContent = $routesContent.Replace("static const String wallet = '/wallet';", "static const String wallet = '/wallet';`r`n  static const String referEarn = '/refer-earn';")
+        $routesContent = $routesContent.Replace("default:", "case referEarn:`r`n        return _buildRoute(settings, ReferEarnScreen(data: args));`r`n      default:")
+        Set-Content -Path $routesFile -Value $routesContent -Encoding UTF8
+        Write-Host "[2/2] Registered referEarn route in routes.dart" -ForegroundColor Green
+    }
+}
+
+Write-Host "`n==========================================================" -ForegroundColor Cyan
+Write-Host "RUNNING FLUTTER ANALYZE VERIFICATION..." -ForegroundColor Cyan
+Write-Host "==========================================================" -ForegroundColor Cyan
+flutter analyze

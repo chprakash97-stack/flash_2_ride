@@ -1,4 +1,11 @@
-﻿import 'package:flutter/material.dart';
+# ==========================================================
+# Flash2Ride - Final Fix for Refer and Earn Screen & Menu
+# ==========================================================
+Write-Host "Updating Refer and Earn to match poster image..." -ForegroundColor Cyan
+
+# 1. Update Refer & Earn Screen matching the Project Poster
+$screenCode = @'
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class ReferEarnScreen extends StatefulWidget {
@@ -56,7 +63,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Hero Banner
+            // Top Hero Banner: Invite Friends & Get Bonus
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -85,7 +92,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                         ),
                         SizedBox(height: 6),
                         Text(
-                          'Get \u20B950 Wallet Bonus',
+                          'Get ₹50 Wallet Bonus',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -284,7 +291,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '\u20B950 per friend',
+                              '₹50 per friend',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -343,8 +350,8 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
                   const Divider(height: 24),
                   _buildStep(
                     icon: Icons.account_balance_wallet_rounded,
-                    title: '3. Earn \u20B950 Cash Bonus',
-                    subtitle: '\u20B950 is instantly credited to your Flash Wallet for your rides!',
+                    title: '3. Earn ₹50 Cash Bonus',
+                    subtitle: '₹50 is instantly credited to your Flash Wallet for your rides!',
                   ),
                 ],
               ),
@@ -397,3 +404,48 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
     );
   }
 }
+'@
+Set-Content -Path "lib\screens\features\refer_earn_screen.dart" -Value $screenCode -Encoding UTF8
+Set-Content -Path "lib\views\rewards\refer_earn_screen.dart" -Value $screenCode -Encoding UTF8
+Write-Host "[OK] Updated Refer and Earn screen code from Poster" -ForegroundColor Green
+
+# 2. Update home_screen.dart: Clean natural styling (not selected) + Direct Navigation
+$homeFile = "lib\screens\home\home_screen.dart"
+if (Test-Path $homeFile) {
+    $content = Get-Content $homeFile -Raw
+    
+    # Ensure import is present at the top
+    if ($content -notmatch "refer_earn_screen\.dart") {
+        $content = "import '../features/refer_earn_screen.dart';`r`n" + $content
+    }
+    
+    # Replace the existing Refer & Earn ListTile with clean styling and Direct Navigation
+    $cleanTile = @'
+            // Refer & Earn
+            ListTile(
+              leading: const Icon(Icons.card_giftcard_rounded, color: Color(0xFF10B981)),
+              title: const Text('Refer & Earn'),
+              subtitle: const Text('Get ₹50 Wallet Bonus'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ReferEarnScreen()),
+                );
+              },
+            ),
+'@
+    
+    # Regex replace previous ListTile
+    $content = [System.Text.RegularExpressions.Regex]::Replace(
+        $content,
+        '(?s)//.*?Refer & Earn.*?onTap:.*?Navigator\..*?\},?\s*\),?',
+        $cleanTile
+    )
+    
+    Set-Content -Path $homeFile -Value $content -Encoding UTF8
+    Write-Host "[OK] Updated home_screen.dart with clean non-selected style and direct navigation" -ForegroundColor Green
+}
+
+Write-Host "`nRunning flutter analyze verification..." -ForegroundColor Cyan
+flutter analyze
