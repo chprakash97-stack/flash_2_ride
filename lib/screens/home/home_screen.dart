@@ -1,4 +1,5 @@
-﻿import '../../views/profile/about_us_screen.dart';
+﻿import '../../views/history/ride_history_screen.dart';
+import '../../views/profile/about_us_screen.dart';
 import '../../views/support/help_support_screen.dart';
 import '../../screens/profile/user_profile_screen.dart';
 import '../../views/profile/support_screen.dart';
@@ -373,6 +374,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       child: BottomNavigationBar(
         currentIndex: _currentNavIndex,
         onTap: (index) {
+          if (index == 1) { Navigator.push(context, MaterialPageRoute(builder: (context) => const RideHistoryScreen())); return; }
           setState(() => _currentNavIndex = index);
           if (index == 3) {
             Navigator.push(
@@ -447,7 +449,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             title: const Text('Ride History'),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/ride-history');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RideHistoryScreen()),
+              );
             },
           ),
           // 4. Flash Wallet (Golden Amber)
