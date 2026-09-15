@@ -366,7 +366,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
       child: BottomNavigationBar(
         currentIndex: _currentNavIndex,
-        onTap: (index) => setState(() => _currentNavIndex = index),
+        onTap: (index) {
+          setState(() => _currentNavIndex = index);
+          if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const WalletScreen()),
+            ).then((_) {
+              if (mounted) setState(() => _currentNavIndex = 0);
+            });
+          }
+        },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: const Color(0xFF0058FF),
@@ -432,7 +442,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             title: const Text('Flash Wallet'),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/wallet');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const WalletScreen()),
+              );
             },
           ),
           // 5. Power Pass (Subscriptions) (Vibrant Orange)
@@ -441,7 +454,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             title: const Text('Power Pass (Subscriptions)'),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/power-pass');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PowerPassScreen()),
+              );
             },
           ),
           // 6. Safety Toolkit (Safety Coral Red)

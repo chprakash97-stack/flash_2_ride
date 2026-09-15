@@ -1,17 +1,3 @@
-# ==============================================================================
-# Flash2Ride - Poster-Accurate Power Pass (Subscriptions) Screen Setup
-# 1. Creates lib\views\wallet\power_pass_screen.dart matching Poster Image Section 6
-# 2. Links 'Power Pass (Subscriptions)' in Drawer (Three Dots Menu) to PowerPassScreen
-# ==============================================================================
-
-Write-Host "1. Creating Poster-Accurate Power Pass Screen..." -ForegroundColor Cyan
-
-$walletDir = "lib\views\wallet"
-if (!(Test-Path $walletDir)) {
-    New-Item -ItemType Directory -Path $walletDir -Force | Out-Null
-}
-
-$powerPassCode = @'
 import 'package:flutter/material.dart';
 
 class PowerPassScreen extends StatefulWidget {
@@ -23,7 +9,7 @@ class PowerPassScreen extends StatefulWidget {
 }
 
 class _PowerPassScreenState extends State<PowerPassScreen> {
-  int? _selectedPassIndex = 0;
+  final int _selectedPassIndex = 0;
 
   final List<Map<String, dynamic>> _passes = [
     {
@@ -432,71 +418,3 @@ class _PowerPassScreenState extends State<PowerPassScreen> {
     );
   }
 }
-'@
-
-[System.IO.File]::WriteAllText("lib\views\wallet\power_pass_screen.dart", $powerPassCode, [System.Text.Encoding]::UTF8)
-Write-Host "[1/2] Power Pass Screen created at lib\views\wallet\power_pass_screen.dart!" -ForegroundColor Green
-
-Write-Host "`n2. Linking Power Pass in Drawer menu..." -ForegroundColor Cyan
-
-$homeFiles = @(
-    "lib\\screens\\home\\home_screen.dart",
-    "lib\\views\\home\\home_screen.dart"
-)
-
-foreach ($hf in $homeFiles) {
-    if (Test-Path $hf) {
-        $text = [System.IO.File]::ReadAllText($hf, [System.Text.Encoding]::UTF8)
-        $modified = $false
-        
-        # 2.1 Add import if missing
-        $importStr = "import '../../views/wallet/power_pass_screen.dart';"
-        if ($hf -match "views[\\/]home") {
-            $importStr = "import '../wallet/power_pass_screen.dart';"
-        }
-        if ($text -notmatch "power_pass_screen\.dart") {
-            $text = "$importStr`n" + $text
-            $modified = $true
-            Write-Host "  -> Added PowerPassScreen import in $($hf)" -ForegroundColor Yellow
-        }
-        
-        # 2.2 Update Power Pass in Drawer
-        $ppIdx = $text.IndexOf("Power Pass")
-        if ($ppIdx -gt 0) {
-            $otIdx = $text.IndexOf("onTap:", $ppIdx)
-            if ($otIdx -gt 0 -and ($otIdx - $ppIdx) -lt 300) {
-                $afterOnTap = $text.Substring($otIdx, [Math]::Min(150, $text.Length - $otIdx))
-                $endPos = -1
-                if ($afterOnTap -match "onTap:\s*\(\)\s*=>") {
-                    $comma = $text.IndexOf(",", $otIdx)
-                    if ($comma -gt 0) { $endPos = $comma }
-                } else {
-                    $cb = $text.IndexOf("},", $otIdx)
-                    if ($cb -gt 0) { $endPos = $cb + 1 }
-                }
-                
-                if ($endPos -gt 0) {
-                    $newOnTap = @"
-onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PowerPassScreen()),
-              );
-            }
-"@
-                    $text = $text.Substring(0, $otIdx) + $newOnTap + $text.Substring($endPos)
-                    $modified = $true
-                    Write-Host "  -> Successfully linked Drawer 'Power Pass' to PowerPassScreen in $($hf)!" -ForegroundColor Green
-                }
-            }
-        }
-        
-        if ($modified) {
-            [System.IO.File]::WriteAllText($hf, $text, [System.Text.Encoding]::UTF8)
-        }
-    }
-}
-
-Write-Host "`nRunning flutter analyze verification..." -ForegroundColor Cyan
-flutter analyze
