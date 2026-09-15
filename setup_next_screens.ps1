@@ -1,4 +1,229 @@
-﻿import 'package:flutter/material.dart';
+# ==============================================================================
+# Flash2Ride - Language Encoding Fix & Poster-Accurate Refer & Earn Screen
+# 1. Fixes language_screen.dart (Encoding & ListTile Material assertion)
+# 2. Creates lib\views\rewards\refer_earn_screen.dart (Section 6 Poster)
+# 3. Links Refer & Earn in Drawer menu & routes.dart
+# ==============================================================================
+
+Write-Host "1. Updating Language Screen with Unicode & Clean Material Layout..." -ForegroundColor Cyan
+
+$cleanLangCode = @'
+import 'package:flutter/material.dart';
+
+class LanguageSelectionScreen extends StatefulWidget {
+  final dynamic data;
+  const LanguageSelectionScreen({super.key, this.data});
+
+  @override
+  State<LanguageSelectionScreen> createState() => _LanguageSelectionScreenState();
+}
+
+class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
+  String _selectedLanguage = 'English';
+
+  final List<Map<String, String>> _languages = [
+    {
+      'code': 'en',
+      'name': 'English',
+      'native': 'English',
+      'badge': 'E',
+      'subtitle': 'Default app language',
+    },
+    {
+      'code': 'te',
+      'name': 'Telugu',
+      'native': '\u0C24\u0C46\u0C32\u0C41\u0C17\u0C41',
+      'badge': 'T',
+      'subtitle': 'Nellore local language',
+    },
+    {
+      'code': 'hi',
+      'name': 'Hindi',
+      'native': '\u0939\u093F\u0902\u0926\u0940',
+      'badge': 'H',
+      'subtitle': 'National language',
+    },
+  ];
+
+  void _saveLanguage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('App language set to $_selectedLanguage successfully!'),
+        backgroundColor: const Color(0xFF10B981),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+    Navigator.pop(context, _selectedLanguage);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text(
+          'Language',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        centerTitle: false,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Choose Language',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Select your preferred language for ride booking, notifications & voice alerts.',
+              style: TextStyle(
+                fontSize: 13,
+                color: Color(0xFF64748B),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Column(
+                  children: List.generate(_languages.length, (index) {
+                    final lang = _languages[index];
+                    final isSelected = _selectedLanguage == lang['name'];
+
+                    return Column(
+                      children: [
+                        ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          leading: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: isSelected
+                                ? const Color(0xFF2563EB).withOpacity(0.12)
+                                : const Color(0xFFF1F5F9),
+                            child: Text(
+                              lang['badge']!,
+                              style: TextStyle(
+                                color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          title: Row(
+                            children: [
+                              Text(
+                                lang['name']!,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                  color: const Color(0xFF0F172A),
+                                ),
+                              ),
+                              if (lang['name'] != lang['native']) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  '(' + lang['native']! + ')',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: isSelected ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          subtitle: Text(
+                            lang['subtitle']!,
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                          ),
+                          trailing: Radio<String>(
+                            value: lang['name']!,
+                            groupValue: _selectedLanguage,
+                            activeColor: const Color(0xFF2563EB),
+                            onChanged: (val) {
+                              setState(() => _selectedLanguage = val!);
+                            },
+                          ),
+                          onTap: () {
+                            setState(() => _selectedLanguage = lang['name']!);
+                          },
+                        ),
+                        if (index < _languages.length - 1)
+                          const Divider(height: 1, indent: 64),
+                      ],
+                    );
+                  }),
+                ),
+              ),
+            ),
+
+            const Spacer(),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _saveLanguage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Save',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+}
+'@
+
+[System.IO.File]::WriteAllText("lib\views\profile\language_screen.dart", $cleanLangCode, [System.Text.Encoding]::UTF8)
+Write-Host "  -> Language Screen updated cleanly!" -ForegroundColor Green
+
+Write-Host "`n2. Creating Poster-Accurate Refer & Earn Screen..." -ForegroundColor Cyan
+
+$rewardsDir = "lib\views\rewards"
+if (!(Test-Path $rewardsDir)) {
+    New-Item -ItemType Directory -Path $rewardsDir -Force | Out-Null
+}
+
+$referCode = @'
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class ReferEarnScreen extends StatefulWidget {
@@ -310,3 +535,75 @@ class _ReferEarnScreenState extends State<ReferEarnScreen> {
     );
   }
 }
+'@
+
+[System.IO.File]::WriteAllText("lib\views\rewards\refer_earn_screen.dart", $referCode, [System.Text.Encoding]::UTF8)
+Write-Host "  -> Refer & Earn screen created at lib\views\rewards\refer_earn_screen.dart!" -ForegroundColor Green
+
+Write-Host "`n3. Linking Refer & Earn in Drawer menu..." -ForegroundColor Cyan
+
+$homeFiles = @(
+    "lib\screens\home\home_screen.dart",
+    "lib\views\home\home_screen.dart"
+)
+
+foreach ($hf in $homeFiles) {
+    if (Test-Path $hf) {
+        $text = [System.IO.File]::ReadAllText($hf, [System.Text.Encoding]::UTF8)
+        $modified = $false
+        
+        if ($text -notmatch "refer_earn_screen\.dart") {
+            $text = "import '../../views/rewards/refer_earn_screen.dart';`n" + $text
+            $modified = $true
+        }
+        
+        # Link Refer & Earn in Drawer
+        $reIdx = $text.IndexOf("Refer & Earn")
+        if ($reIdx -gt 0) {
+            $otIdx = $text.IndexOf("onTap:", $reIdx)
+            if ($otIdx -gt 0 -and ($otIdx - $reIdx) -lt 300) {
+                $afterOnTap = $text.Substring($otIdx, [Math]::Min(150, $text.Length - $otIdx))
+                $endPos = -1
+                if ($afterOnTap -match "onTap:\s*\(\)\s*=>") {
+                    $comma = $text.IndexOf(",", $otIdx)
+                    if ($comma -gt 0) { $endPos = $comma }
+                } else {
+                    $cb = $text.IndexOf("},", $otIdx)
+                    if ($cb -gt 0) { $endPos = $cb + 1 }
+                }
+                
+                if ($endPos -gt 0) {
+                    $newOnTap = @"
+onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ReferEarnScreen()),
+              );
+            }
+"@
+                    $text = $text.Substring(0, $otIdx) + $newOnTap + $text.Substring($endPos)
+                    $modified = $true
+                    Write-Host "  -> Successfully linked Drawer 'Refer & Earn' to ReferEarnScreen in $($hf)!" -ForegroundColor Green
+                }
+            }
+        }
+        
+        if ($modified) {
+            [System.IO.File]::WriteAllText($hf, $text, [System.Text.Encoding]::UTF8)
+        }
+    }
+}
+
+# Clean unused _showLanguageDialog warnings in Profile Settings
+$pFiles = @('lib\screens\profile\user_profile_screen.dart', 'lib\views\profile\profile_screen.dart')
+foreach ($pf in $pFiles) {
+    if (Test-Path $pf) {
+        $pc = [System.IO.File]::ReadAllText($pf, [System.Text.Encoding]::UTF8)
+        $pc = [System.Text.RegularExpressions.Regex]::Replace($pc, '(?s)\s*void _showLanguageDialog\(\)\s*\{.*?\n  \}', '')
+        [System.IO.File]::WriteAllText($pf, $pc, [System.Text.Encoding]::UTF8)
+    }
+}
+
+Write-Host "`nRunning flutter analyze verification..." -ForegroundColor Cyan
+flutter analyze

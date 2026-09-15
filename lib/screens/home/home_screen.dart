@@ -1,4 +1,10 @@
-﻿import '../features/refer_earn_screen.dart';
+﻿import '../../views/profile/about_us_screen.dart';
+import '../../views/support/help_support_screen.dart';
+import '../../screens/profile/user_profile_screen.dart';
+import '../../views/profile/support_screen.dart';
+import '../../views/payment/payment_methods_screen.dart';
+import '../../screens/home/saved_places_screen.dart';
+import '../features/refer_earn_screen.dart';
 import '../features/power_pass_screen.dart';
 import '../features/wallet_screen.dart';
 import '../location/destination_search_screen.dart';
@@ -368,6 +374,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         currentIndex: _currentNavIndex,
         onTap: (index) {
           setState(() => _currentNavIndex = index);
+          if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+            ).then((_) {
+              if (mounted) setState(() => _currentNavIndex = 0);
+            });
+          }
           if (index == 2) {
             Navigator.push(
               context,
@@ -417,7 +431,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               Navigator.pop(context);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ReferEarnScreen()),
+                MaterialPageRoute(builder: (context) => const ReferEarnScreen()),
               );
             },
           ),
@@ -460,8 +474,42 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               );
             },
           ),
-          // 6. Safety Toolkit (Safety Coral Red)
+          // Payment Methods (Royal Blue)
           ListTile(
+            leading: const Icon(Icons.payment_rounded, color: Color(0xFF2563EB)),
+            title: const Text('Payment Methods'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PaymentMethodsScreen()),
+              );
+            },
+          ),
+          // 6. Safety Toolkit (Safety Coral Red)
+                    // Saved Places (Royal Blue)
+          ListTile(
+            leading: const Icon(Icons.bookmark_border_rounded, color: Color(0xFF2563EB)),
+            title: const Text('Saved Places'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SavedPlacesScreen()),
+              );
+            },
+          ),          // Help & Support (Sky Blue)
+          ListTile(
+            leading: const Icon(Icons.help_outline_rounded, color: Color(0xFF0284C7)),
+            title: const Text('Help & Support'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HelpSupportScreen()),
+              );
+            },
+          ),ListTile(
             leading: const Icon(Icons.shield_outlined, color: Color(0xFFEF4444)),
             title: const Text('Safety Toolkit'),
             onTap: () {
@@ -470,7 +518,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             },
           ),
           // 7. Settings (Ocean Blue)
-          ListTile(
+                      ListTile(
+              leading: const Icon(Icons.info_outline_rounded, color: Color(0xFF2563EB)),
+              title: const Text('About Us', style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: const Text('Version 1.0.0 & Legal Policy', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+              trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF94A3B8)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AboutUsScreen()),
+                );
+              },
+            ),
+            ListTile(
             leading: const Icon(Icons.settings_outlined, color: Color(0xFF0EA5E9)),
             title: const Text('Settings'),
             onTap: () {
