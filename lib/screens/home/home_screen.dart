@@ -1,9 +1,9 @@
 ﻿import '../../views/history/ride_history_screen.dart';
-import '../../views/profile/about_us_screen.dart';
+import '../../views/payment/payment_methods_screen.dart';
 import '../../views/support/help_support_screen.dart';
+import '../../views/profile/about_us_screen.dart';
 import '../../screens/profile/user_profile_screen.dart';
 import '../../views/profile/support_screen.dart';
-import '../../views/payment/payment_methods_screen.dart';
 import '../../screens/home/saved_places_screen.dart';
 import '../features/refer_earn_screen.dart';
 import '../features/power_pass_screen.dart';
@@ -42,7 +42,124 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      drawer: _buildDrawer(),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            UserAccountsDrawerHeader(
+              decoration: const BoxDecoration(color: Color(0xFF2563EB)),
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(Icons.person, size: 40, color: Color(0xFF2563EB)),
+              ),
+              accountName: const Text(
+                'Ramesh Kumar',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              accountEmail: const Text('ramesh@gmail.com'),
+            ),
+            // 1. Refer & Earn
+            ListTile(
+              leading: const Icon(Icons.card_giftcard_rounded, color: Color(0xFF059669)),
+              title: const Text('Refer & Earn', style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: const Text('Get Rs. 50 Wallet Bonus', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ReferEarnScreen()),
+                );
+              },
+            ),
+            // 2. Ride History
+            ListTile(
+              leading: const Icon(Icons.history_rounded, color: Color(0xFF2563EB)),
+              title: const Text('Ride History', style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RideHistoryScreen()),
+                );
+              },
+            ),
+            // 3. Flash Wallet
+            ListTile(
+              leading: const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFFD97706)),
+              title: const Text('Flash Wallet', style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const WalletScreen()),
+                );
+              },
+            ),
+            // 4. Power Pass (Subscriptions)
+            ListTile(
+              leading: const Icon(Icons.bolt_rounded, color: Color(0xFFF59E0B)),
+              title: const Text('Power Pass (Subscriptions)', style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PowerPassScreen()),
+                );
+              },
+            ),
+            // 5. Payment Methods
+            ListTile(
+              leading: const Icon(Icons.payment_rounded, color: Color(0xFF2563EB)),
+              title: const Text('Payment Methods', style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PaymentMethodsScreen()),
+                );
+              },
+            ),
+            // 6. Saved Places
+            ListTile(
+              leading: const Icon(Icons.bookmark_border_rounded, color: Color(0xFF2563EB)),
+              title: const Text('Saved Places', style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SavedPlacesScreen()),
+                );
+              },
+            ),
+            // 7. Help & Support
+            ListTile(
+              leading: const Icon(Icons.help_outline_rounded, color: Color(0xFF2563EB)),
+              title: const Text('Help & Support', style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HelpSupportScreen()),
+                );
+              },
+            ),
+            // 8. About Us
+            ListTile(
+              leading: const Icon(Icons.info_outline_rounded, color: Color(0xFF2563EB)),
+              title: const Text('About Us', style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: const Text('Version 1.0.0 & Legal Policy', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+              trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF94A3B8)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AboutUsScreen()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
       body: Stack(
         children: [
           // -------------------------------------------------------------
@@ -409,155 +526,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
     );
   }
-
-    Widget _buildDrawer() {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          const UserAccountsDrawerHeader(
-            decoration: BoxDecoration(color: Color(0xFF2563EB)),
-            accountName: Text('Ramesh Kumar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            accountEmail: Text('ramesh@gmail.com'),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.person, color: Color(0xFF2563EB), size: 40),
-            ),
-          ),
-          // 1. Refer & Earn (Emerald Green)
-          ListTile(
-            leading: const Icon(Icons.card_giftcard_rounded, color: Color(0xFF10B981)),
-            title: const Text('Refer & Earn'),
-            subtitle: const Text('Get \u20B950 Wallet Bonus'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ReferEarnScreen()),
-              );
-            },
-          ),
-          // 2. Book Ride (Royal Blue)
-          ListTile(
-            leading: const Icon(Icons.directions_car_rounded, color: Color(0xFF2563EB)),
-            title: const Text('Book Ride'),
-            onTap: () => Navigator.pop(context),
-          ),
-          // 3. Ride History (Rich Purple)
-          ListTile(
-            leading: const Icon(Icons.history_rounded, color: Color(0xFF8B5CF6)),
-            title: const Text('Ride History'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const RideHistoryScreen()),
-              );
-            },
-          ),
-          // 4. Flash Wallet (Golden Amber)
-          ListTile(
-            leading: const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFFF59E0B)),
-            title: const Text('Flash Wallet'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const WalletScreen()),
-              );
-            },
-          ),
-          // 5. Power Pass (Subscriptions) (Vibrant Orange)
-          ListTile(
-            leading: const Icon(Icons.bolt_rounded, color: Color(0xFFFF9800)),
-            title: const Text('Power Pass (Subscriptions)'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PowerPassScreen()),
-              );
-            },
-          ),
-          // Payment Methods (Royal Blue)
-          ListTile(
-            leading: const Icon(Icons.payment_rounded, color: Color(0xFF2563EB)),
-            title: const Text('Payment Methods'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PaymentMethodsScreen()),
-              );
-            },
-          ),
-          // 6. Safety Toolkit (Safety Coral Red)
-                    // Saved Places (Royal Blue)
-          ListTile(
-            leading: const Icon(Icons.bookmark_border_rounded, color: Color(0xFF2563EB)),
-            title: const Text('Saved Places'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SavedPlacesScreen()),
-              );
-            },
-          ),          // Help & Support (Sky Blue)
-          ListTile(
-            leading: const Icon(Icons.help_outline_rounded, color: Color(0xFF0284C7)),
-            title: const Text('Help & Support'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HelpSupportScreen()),
-              );
-            },
-          ),ListTile(
-            leading: const Icon(Icons.shield_outlined, color: Color(0xFFEF4444)),
-            title: const Text('Safety Toolkit'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/safety-toolkit');
-            },
-          ),
-          // 7. Settings (Ocean Blue)
-                      ListTile(
-              leading: const Icon(Icons.info_outline_rounded, color: Color(0xFF2563EB)),
-              title: const Text('About Us', style: TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: const Text('Version 1.0.0 & Legal Policy', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-              trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF94A3B8)),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AboutUsScreen()),
-                );
-              },
-            ),
-            ListTile(
-            leading: const Icon(Icons.settings_outlined, color: Color(0xFF0EA5E9)),
-            title: const Text('Settings'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/profile-settings');
-            },
-          ),
-          const Divider(),
-          // 8. Logout (Deep Red)
-          ListTile(
-            leading: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
-            title: const Text('Logout', style: TextStyle(color: Color(0xFFDC2626))),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-            },
-          ),
-        ],
-      ),
-    );
-  }
+
 }
 
 // Realistic Nellore City Street Map with Penna River & Nearby Cabs/Autos

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class RideHistoryScreen extends StatefulWidget {
   final dynamic data;
@@ -91,7 +91,6 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> with SingleTicker
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Vehicle, Date, Fare
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -136,7 +135,7 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> with SingleTicker
                     ),
                   ),
                   Container(
-                    margin: EdgeInsets.only(top: 16),
+                    margin: const EdgeInsets.only(top: 2),
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: isCompleted ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
@@ -161,7 +160,6 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> with SingleTicker
             child: Divider(height: 1),
           ),
 
-          // Route: Pickup & Drop
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -198,7 +196,6 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> with SingleTicker
 
           const SizedBox(height: 14),
 
-          // Bottom Action Buttons matching poster
           Row(
             children: [
               if (isCompleted) ...[
@@ -259,45 +256,61 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> with SingleTicker
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
+      // 1. Only "Ride History" Header has the Solid Blue Color
       appBar: AppBar(
         title: const Text(
           'Ride History',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF2563EB), // Flash Wallet Blue
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: const Color(0xFF2563EB),
-          unselectedLabelColor: const Color(0xFF64748B),
-          indicatorColor: const Color(0xFF2563EB),
-          indicatorWeight: 3,
-          tabs: const [
-            Tab(text: 'Completed (3)'),
-            Tab(text: 'Cancelled (1)'),
-          ],
-        ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      // 2. Tabs are outside AppBar on a Normal Clean White Background
+      body: Column(
         children: [
-          ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: _completedRides.length,
-            itemBuilder: (context, index) => _buildRideCard(_completedRides[index], true),
+          Container(
+            color: Colors.white,
+            child: TabBar(
+              controller: _tabController,
+              labelColor: const Color(0xFF2563EB), // Blue active text
+              unselectedLabelColor: const Color(0xFF64748B), // Grey inactive text
+              indicatorColor: const Color(0xFF2563EB), // Blue indicator line
+              indicatorWeight: 3,
+              tabs: const [
+                Tab(text: 'Completed (3)'),
+                Tab(text: 'Cancelled (1)'),
+              ],
+            ),
           ),
-          ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: _cancelledRides.length,
-            itemBuilder: (context, index) => _buildRideCard(_cancelledRides[index], false),
+          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: _completedRides.length,
+                  itemBuilder: (context, index) => _buildRideCard(_completedRides[index], true),
+                ),
+                ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: _cancelledRides.length,
+                  itemBuilder: (context, index) => _buildRideCard(_cancelledRides[index], false),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 }
-
