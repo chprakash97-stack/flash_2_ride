@@ -6,6 +6,10 @@ on:
       - main
       - master
 
+# ఈ permissions సెక్షన్ తప్పనిసరి
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
