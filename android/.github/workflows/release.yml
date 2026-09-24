@@ -3,7 +3,8 @@ name: Build and Release APK
 on:
   push:
     branches:
-      - main # మీ main/master branch కి push చేసినప్పుడు ట్రిగ్గర్ అవుతుంది
+      - main
+      - master # మీ main/master branch కి push చేసినప్పుడు ట్రిగ్గర్ అవుతుంది
 
 jobs:
   build:
