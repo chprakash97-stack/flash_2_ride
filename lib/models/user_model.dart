@@ -5,7 +5,6 @@ class UserModel {
   final String email;
   final String emergencyContact;
   final double walletBalance;
-  final String referralCode;
 
   UserModel({
     required this.id,
@@ -13,19 +12,46 @@ class UserModel {
     required this.phone,
     required this.email,
     required this.emergencyContact,
-    this.walletBalance = 250.0,
-    this.referralCode = 'FLASH998',
+    required this.walletBalance,
   });
 
-  UserModel copyWith({String? name, String? email, String? emergencyContact, double? walletBalance}) {
+  factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      id: id,
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      phone: map['phone'] ?? '',
+      email: map['email'] ?? '',
+      emergencyContact: map['emergencyContact'] ?? '',
+      walletBalance: (map['walletBalance'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'phone': phone,
+      'email': email,
+      'emergencyContact': emergencyContact,
+      'walletBalance': walletBalance,
+    };
+  }
+
+  UserModel copyWith({
+    String? id,
+    String? name,
+    String? phone,
+    String? email,
+    String? emergencyContact,
+    double? walletBalance,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
       name: name ?? this.name,
-      phone: phone,
+      phone: phone ?? this.phone,
       email: email ?? this.email,
       emergencyContact: emergencyContact ?? this.emergencyContact,
       walletBalance: walletBalance ?? this.walletBalance,
-      referralCode: referralCode,
     );
   }
 }
