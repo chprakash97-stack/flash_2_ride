@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Java environment సెటప్
+      # 2. Java environment సెటప్s
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
