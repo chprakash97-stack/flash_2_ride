@@ -11,7 +11,6 @@ permissions:
   contents: write
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
@@ -38,11 +37,22 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 5. Build APK
+      # 5. Decode Keystore & Configure key.properties from GitHub Secrets
+      - name: Setup Android Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/my-release-key.jks
+          echo "storePassword='${{ secrets.KEY_PASSWORD }}'" >> android/key.properties
+          echo "keyPassword='${{ secrets.KEY_PASSWORD }}'" >> android/key.properties
+          echo "keyAlias='${{ secrets.ALIAS_NAME }}'" >> android/key.properties
+          echo "storeFile=my-release-key.jks" >> android/key.properties
+        working-directory: .
+        shell: bash
+
+      # 6. Build APK
       - name: Build Release APK
         run: flutter build apk --release
 
-      # 6. Create Release on GitHub
+      # 7. Create Release on GitHub
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
@@ -50,4 +60,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: "v1.0.${{ github.run_number }}"
           name: "Release v1.0.${{ github.run_number }}"
-          body: "Automated APK build from GitHub Actions."
+          body: "Automated APK build from GitHub Actions with release signing."
