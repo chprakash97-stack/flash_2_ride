@@ -1,7 +1,46 @@
-﻿import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
-import '../../screens/booking/ride_selection_screen.dart';
-import '../../screens/booking/flash_parcel_screen.dart';
+﻿import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+// Screens & Views Imports
+import '../../views/history/ride_history_screen.dart';
+import '../../views/payment/payment_methods_screen.dart';
+import '../../views/support/help_support_screen.dart';
+import '../../views/profile/about_us_screen.dart';
+import '../../screens/profile/user_profile_screen.dart';
+import '../../screens/home/saved_places_screen.dart';
+import '../features/refer_earn_screen.dart';
+import '../features/power_pass_screen.dart';
+import '../features/wallet_screen.dart';
+import '../location/destination_search_screen.dart';
+
+/// Driver Model for Firestore Stream
+class NearbyDriver {
+  final String id;
+  final String vehicleType;
+  final double latitude;
+  final double longitude;
+
+  NearbyDriver({
+    required this.id,
+    required this.vehicleType,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  factory NearbyDriver.fromFirestore(Map<String, dynamic> data, String id) {
+    return NearbyDriver(
+      id: id,
+      vehicleType: data['vehicleType'] ?? 'Bike',
+      latitude: (data['latitude'] as num?)?.toDouble() ?? 14.4426,
+      longitude: (data['longitude'] as num?)?.toDouble() ?? 79.9865,
+    );
+  }
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,227 +50,971 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
+  int _currentNavIndex = 0;
+  String _selectedVehicle = 'Bike';
+
+  // Firebase Instances
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Google Map Controller & Default Location (Nellore)
+  final Completer<GoogleMapController> _mapController = Completer();
+  static const LatLng _nelloreDefault = LatLng(14.4426, 79.9865);
+  LatLng _currentLatLng = _nelloreDefault;
+
+  // Location States
+  String _currentAddress = 'Nellore, Andhra Pradesh';
+  bool _isLoadingLocation = true;
+  StreamSubscription<Position>? _positionStreamSubscription;
+
+  // Map Markers
+  Set<Marker> _markers = {};
+
+  final List<Map<String, dynamic>> _defaultVehicles = [
+    {
+      'name': 'Bike',
+      'image': 'assets/images/vehicle_bike.png',
+      'icon': Icons.two_wheeler_rounded
+    },
+    {
+      'name': 'Auto',
+      'image': 'assets/images/vehicle_auto.png',
+      'icon': Icons.electric_rickshaw_rounded
+    },
+    {
+      'name': 'Cab',
+      'image': 'assets/images/vehicle_cab.png',
+      'icon': Icons.local_taxi_rounded
+    },
+    {
+      'name': 'Parcel',
+      'image': 'assets/images/vehicle_parcel.png',
+      'icon': Icons.inventory_2_rounded
+    },
+  ];
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              color: const Color(0xFFE5E3DF),
-              child: const Center(
-                child: Text(
-                  "Map View Loading...",
-                  style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ),
+  void initState() {
+    super.initState();
+    _initLocation();
+  }
+
+  @override
+  void dispose() {
+    _positionStreamSubscription?.cancel();
+    super.dispose();
+  }
+
+  /// Device GPS Location & Reverse Geocoding
+  Future<void> _initLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) setState(() => _isLoadingLocation = false);
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) setState(() => _isLoadingLocation = false);
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) setState(() => _isLoadingLocation = false);
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+
+      final newLatLng = LatLng(position.latitude, position.longitude);
+      await _updateAddressFromCoordinates(
+          position.latitude, position.longitude);
+
+      if (mounted) {
+        setState(() {
+          _currentLatLng = newLatLng;
+          _isLoadingLocation = false;
+        });
+        _recenterCamera(newLatLng);
+      }
+
+      _positionStreamSubscription = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 20,
+        ),
+      ).listen((pos) {
+        if (mounted) {
+          final updatedLatLng = LatLng(pos.latitude, pos.longitude);
+          setState(() => _currentLatLng = updatedLatLng);
+          _updateAddressFromCoordinates(pos.latitude, pos.longitude);
+        }
+      });
+    } catch (e) {
+      debugPrint('Location Error: $e');
+      if (mounted) setState(() => _isLoadingLocation = false);
+    }
+  }
+
+  /// Geocoding Address
+  Future<void> _updateAddressFromCoordinates(double lat, double lng) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final subLocality = place.subLocality ?? place.locality ?? '';
+        final city = place.locality ?? place.administrativeArea ?? 'Nellore';
+        final state = place.administrativeArea ?? 'Andhra Pradesh';
+
+        final formatted =
+            subLocality.isNotEmpty ? '$subLocality, $city' : '$city, $state';
+        if (mounted) {
+          setState(() {
+            _currentAddress = formatted;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Geocoding error: $e');
+    }
+  }
+
+  /// Recenter Camera Animation
+  Future<void> _recenterCamera([LatLng? target]) async {
+    final GoogleMapController controller = await _mapController.future;
+    controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: target ?? _currentLatLng,
+          zoom: 15.5,
+        ),
+      ),
+    );
+  }
+
+  /// Update Driver Markers from Firestore Stream
+  void _updateDriverMarkers(List<NearbyDriver> drivers) {
+    final Set<Marker> updatedMarkers = {};
+
+    // Current User Marker
+    updatedMarkers.add(
+      Marker(
+        markerId: const MarkerId('user_location'),
+        position: _currentLatLng,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        infoWindow: const InfoWindow(title: 'My Location'),
+      ),
+    );
+
+    // Live Drivers Markers
+    for (var driver in drivers) {
+      double hue = BitmapDescriptor.hueGreen;
+      if (driver.vehicleType == 'Cab') {
+        hue = BitmapDescriptor.hueViolet;
+      } else if (driver.vehicleType == 'Auto') {
+        hue = BitmapDescriptor.hueOrange;
+      } else if (driver.vehicleType == 'Parcel') {
+        hue = BitmapDescriptor.hueBlue;
+      }
+
+      updatedMarkers.add(
+        Marker(
+          markerId: MarkerId(driver.id),
+          position: LatLng(driver.latitude, driver.longitude),
+          icon: BitmapDescriptor.defaultMarkerWithHue(hue),
+          infoWindow: InfoWindow(title: '${driver.vehicleType} Driver'),
+        ),
+      );
+    }
+
+    setState(() {
+      _markers = updatedMarkers;
+    });
+  }
+
+  /// Logout Action
+  Future<void> _handleSignOut() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log Out'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
           ),
-          Positioned(
-            top: 50,
-            left: 16,
-            right: 16,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: IconButton(
-                    icon: const Icon(Icons.menu, color: Colors.black87),
-                    onPressed: () {},
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8),
-                    ],
-                  ),
-                  child: Row(
-                    children: const [
-                      Icon(Icons.flash_on, color: AppColors.primary, size: 20),
-                      SizedBox(width: 4),
-                      Text(
-                        "Flash2Ride",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
-                      ),
-                    ],
-                  ),
-                ),
-                CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: IconButton(
-                    icon: const Icon(Icons.notifications_none, color: Colors.black87),
-                    onPressed: () {},
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            bottom: 70,
-            left: 16,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3F4F6),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.search, color: AppColors.primary, size: 22),
-                        SizedBox(width: 12),
-                        Text(
-                          "Where to?",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1F2937),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildServiceItem(
-                        context,
-                        title: 'Bike',
-                        icon: Icons.two_wheeler,
-                        color: Colors.green,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const RideSelectionScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildServiceItem(
-                        context,
-                        title: 'Auto',
-                        icon: Icons.electric_rickshaw,
-                        color: Colors.orange,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const RideSelectionScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildServiceItem(
-                        context,
-                        title: 'Cab',
-                        icon: Icons.local_taxi,
-                        color: Colors.blue,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const RideSelectionScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildServiceItem(
-                        context,
-                        title: 'Parcel',
-                        icon: Icons.local_shipping,
-                        color: Colors.purple,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const FlashParcelScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Log Out', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'Wallet'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+    );
+
+    if (shouldLogout == true) {
+      await _auth.signOut();
+      if (mounted) {
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil('/login', (route) => false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final User? currentUser = _auth.currentUser;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      drawer: _buildDrawer(currentUser),
+      body: Stack(
+        children: [
+          // 1. LAYER 1: Live Google Map
+          StreamBuilder<QuerySnapshot>(
+            stream: _firestore
+                .collection('drivers')
+                .where('isOnline', isEqualTo: true)
+                .where('isAvailable', isEqualTo: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final drivers = snapshot.data!.docs.map((doc) {
+                  return NearbyDriver.fromFirestore(
+                    doc.data() as Map<String, dynamic>,
+                    doc.id,
+                  );
+                }).toList();
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _updateDriverMarkers(drivers);
+                });
+              }
+
+              return GoogleMap(
+                initialCameraPosition: const CameraPosition(
+                  target: _nelloreDefault,
+                  zoom: 15.0,
+                ),
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                zoomControlsEnabled: false,
+                mapToolbarEnabled: false,
+                padding: const EdgeInsets.only(
+                    bottom: 230, top: 90), // Bottom card padding
+                markers: _markers,
+                onMapCreated: (GoogleMapController controller) {
+                  _mapController.complete(controller);
+                },
+              );
+            },
+          ),
+
+          // 2. Current Location Tooltip Bubble
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 85,
+            left: 20,
+            right: 70,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF0058FF),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.location_on,
+                          color: Colors.white, size: 14),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Current Location',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0058FF),
+                            ),
+                          ),
+                          _isLoadingLocation
+                              ? const SizedBox(
+                                  height: 12,
+                                  width: 12,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text(
+                                  _currentAddress,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF475569),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Recenter GPS Button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 85,
+            right: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.12),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.my_location_rounded,
+                    color: Color(0xFF0058FF), size: 22),
+                tooltip: 'Recenter Map',
+                onPressed: () {
+                  _recenterCamera();
+                },
+              ),
+            ),
+          ),
+
+          // 4. LAYER 2: Header Bar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _buildTopHeader(currentUser?.uid),
+          ),
+
+          // 5. LAYER 3: Bottom Floating Card
+          Positioned(
+            left: 14,
+            right: 14,
+            bottom: 12,
+            child: _buildWhereToAndVehiclesCard(),
+          ),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  /// Side Drawer Connected with Firestore Profile Data
+  Widget _buildDrawer(User? currentUser) {
+    return Drawer(
+      child: currentUser == null
+          ? const Center(child: Text('No active user found'))
+          : StreamBuilder<DocumentSnapshot>(
+              stream: _firestore
+                  .collection('users')
+                  .doc(currentUser.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                String displayName = currentUser.displayName ?? 'User';
+                String email = currentUser.email ?? '';
+                String? photoUrl = currentUser.photoURL;
+                double walletBalance = 0.0;
+
+                if (snapshot.hasData && snapshot.data!.exists) {
+                  final data = snapshot.data!.data() as Map<String, dynamic>;
+                  displayName = data['name'] ?? displayName;
+                  email = data['email'] ?? email;
+                  photoUrl = data['profilePic'] ?? photoUrl;
+                  walletBalance =
+                      (data['walletBalance'] as num?)?.toDouble() ?? 0.0;
+                }
+
+                return ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    UserAccountsDrawerHeader(
+                      decoration: const BoxDecoration(color: Color(0xFF2563EB)),
+                      currentAccountPicture: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        backgroundImage:
+                            (photoUrl != null && photoUrl.isNotEmpty)
+                                ? NetworkImage(photoUrl)
+                                : null,
+                        child: (photoUrl == null || photoUrl.isEmpty)
+                            ? Text(
+                                displayName.isNotEmpty
+                                    ? displayName[0].toUpperCase()
+                                    : 'U',
+                                style: const TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2563EB),
+                                ),
+                              )
+                            : null,
+                      ),
+                      accountName: Text(
+                        displayName,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      accountEmail: Text(email),
+                    ),
+
+                    // 1. Refer & Earn
+                    ListTile(
+                      leading: const Icon(Icons.card_giftcard_rounded,
+                          color: Color(0xFF059669)),
+                      title: const Text('Refer & Earn',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: const Text('Get Wallet Bonus',
+                          style: TextStyle(
+                              fontSize: 12, color: Color(0xFF64748B))),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const ReferEarnScreen()),
+                        );
+                      },
+                    ),
+
+                    // 2. Ride History
+                    ListTile(
+                      leading: const Icon(Icons.history_rounded,
+                          color: Color(0xFF2563EB)),
+                      title: const Text('Ride History',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const RideHistoryScreen()),
+                        );
+                      },
+                    ),
+
+                    // 3. Flash Wallet
+                    ListTile(
+                      leading: const Icon(Icons.account_balance_wallet_outlined,
+                          color: Color(0xFFD97706)),
+                      title: const Text('Flash Wallet',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      trailing: Text(
+                        '₹${walletBalance.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFD97706)),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const WalletScreen()),
+                        );
+                      },
+                    ),
+
+                    // 4. Power Pass
+                    ListTile(
+                      leading: const Icon(Icons.bolt_rounded,
+                          color: Color(0xFFF59E0B)),
+                      title: const Text('Power Pass (Subscriptions)',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const PowerPassScreen()),
+                        );
+                      },
+                    ),
+
+                    // 5. Payment Methods
+                    ListTile(
+                      leading: const Icon(Icons.payment_rounded,
+                          color: Color(0xFF2563EB)),
+                      title: const Text('Payment Methods',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const PaymentMethodsScreen()),
+                        );
+                      },
+                    ),
+
+                    // 6. Saved Places
+                    ListTile(
+                      leading: const Icon(Icons.bookmark_border_rounded,
+                          color: Color(0xFF2563EB)),
+                      title: const Text('Saved Places',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SavedPlacesScreen()),
+                        );
+                      },
+                    ),
+
+                    // 7. Help & Support
+                    ListTile(
+                      leading: const Icon(Icons.help_outline_rounded,
+                          color: Color(0xFF2563EB)),
+                      title: const Text('Help & Support',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const HelpSupportScreen()),
+                        );
+                      },
+                    ),
+
+                    // 8. About Us
+                    ListTile(
+                      leading: const Icon(Icons.info_outline_rounded,
+                          color: Color(0xFF2563EB)),
+                      title: const Text('About Us',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: const Text('Version 1.0.0 & Legal Policy',
+                          style: TextStyle(
+                              fontSize: 11, color: Color(0xFF64748B))),
+                      trailing: const Icon(Icons.chevron_right,
+                          size: 20, color: Color(0xFF94A3B8)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const AboutUsScreen()),
+                        );
+                      },
+                    ),
+
+                    const Divider(),
+
+                    // 9. Sign Out Button
+                    ListTile(
+                      leading: const Icon(Icons.logout_rounded,
+                          color: Colors.redAccent),
+                      title: const Text(
+                        'Log Out',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.redAccent),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _handleSignOut();
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+    );
+  }
+
+  /// Top Header Bar
+  Widget _buildTopHeader(String? userId) {
+    const Color brandRoyalBlue = Color(0xFF0058FF);
+
+    return Container(
+      width: double.infinity,
+      color: brandRoyalBlue,
+      child: SafeArea(
+        bottom: false,
+        child: Container(
+          height: 70,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Builder(
+                builder: (ctx) => IconButton(
+                  icon: const Icon(Icons.menu_rounded,
+                      color: Colors.white, size: 32),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () => Scaffold.of(ctx).openDrawer(),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/logo_center.png',
+                    height: 56,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Text(
+                        'Flash2Ride',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              if (userId != null)
+                StreamBuilder<QuerySnapshot>(
+                  stream: _firestore
+                      .collection('users')
+                      .doc(userId)
+                      .collection('notifications')
+                      .where('isRead', isEqualTo: false)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    final int unreadCount =
+                        snapshot.hasData ? snapshot.data!.docs.length : 0;
+
+                    return Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.notifications_none_rounded,
+                              color: Colors.white, size: 28),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () {},
+                        ),
+                        if (unreadCount > 0)
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.redAccent,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                unreadCount > 9 ? '9+' : '$unreadCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                )
+              else
+                IconButton(
+                  icon: const Icon(Icons.notifications_none_rounded,
+                      color: Colors.white, size: 28),
+                  onPressed: () {},
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Where to & Vehicle Selector Card
+  Widget _buildWhereToAndVehiclesCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.search_rounded, color: Color(0xFF0058FF), size: 30),
+              SizedBox(width: 8),
+              Text(
+                'Where to?',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DestinationSearchScreen(),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.my_location_rounded,
+                      color: Color(0xFF0058FF), size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Pickup: $_currentAddress',
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF334155),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded,
+                      color: Color(0xFF64748B), size: 22),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          StreamBuilder<QuerySnapshot>(
+            stream: _firestore
+                .collection('vehicle_types')
+                .where('isActive', isEqualTo: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              List<Map<String, dynamic>> vehicles = _defaultVehicles;
+
+              if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                vehicles = snapshot.data!.docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final name = data['name'] ?? 'Vehicle';
+                  IconData icon = Icons.directions_car_rounded;
+                  String image =
+                      'assets/images/vehicle_${name.toLowerCase()}.png';
+
+                  if (name == 'Bike') icon = Icons.two_wheeler_rounded;
+                  if (name == 'Auto') icon = Icons.electric_rickshaw_rounded;
+                  if (name == 'Cab') icon = Icons.local_taxi_rounded;
+                  if (name == 'Parcel') icon = Icons.inventory_2_rounded;
+
+                  return {
+                    'name': name,
+                    'image': image,
+                    'icon': icon,
+                    'eta': data['eta'] ?? '',
+                  };
+                }).toList();
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: vehicles.map((v) {
+                  return _buildVehicleItem(
+                    v['name'] as String,
+                    v['image'] as String,
+                    v['icon'] as IconData,
+                    eta: v['eta'] as String?,
+                  );
+                }).toList(),
+              );
+            },
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildServiceItem(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
+  /// Vehicle Item Widget
+  Widget _buildVehicleItem(String name, String imagePath, IconData fallbackIcon,
+      {String? eta}) {
+    final isSelected = _selectedVehicle == name;
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => setState(() => _selectedVehicle = name),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 68,
+            height: 60,
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: color.withOpacity(0.3)),
+              color: isSelected
+                  ? const Color(0xFF0058FF).withOpacity(0.1)
+                  : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isSelected
+                    ? const Color(0xFF0058FF)
+                    : const Color(0xFFE2E8F0),
+                width: isSelected ? 2 : 1,
+              ),
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Center(
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    fallbackIcon,
+                    color: isSelected
+                        ? const Color(0xFF0058FF)
+                        : const Color(0xFF475569),
+                    size: 28,
+                  );
+                },
+              ),
+            ),
           ),
           const SizedBox(height: 6),
           Text(
-            title,
-            style: const TextStyle(
+            name,
+            style: TextStyle(
               fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF374151),
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+              color: isSelected
+                  ? const Color(0xFF0058FF)
+                  : const Color(0xFF334155),
             ),
           ),
+          if (eta != null && eta.isNotEmpty)
+            Text(
+              eta,
+              style: const TextStyle(
+                  fontSize: 10,
+                  color: Color(0xFF64748B),
+                  fontWeight: FontWeight.bold),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Bottom Navigation Bar
+  Widget _buildBottomNavigationBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        currentIndex: _currentNavIndex,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const RideHistoryScreen()));
+            return;
+          }
+          setState(() => _currentNavIndex = index);
+          if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const UserProfileScreen()),
+            ).then((_) {
+              if (mounted) setState(() => _currentNavIndex = 0);
+            });
+          }
+          if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const WalletScreen()),
+            ).then((_) {
+              if (mounted) setState(() => _currentNavIndex = 0);
+            });
+          }
+        },
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFF0058FF),
+        unselectedItemColor: const Color(0xFF94A3B8),
+        selectedLabelStyle:
+            const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        unselectedLabelStyle:
+            const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+        elevation: 0,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.history_rounded), label: 'History'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.account_balance_wallet_rounded),
+              label: 'Wallet'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
       ),
     );
