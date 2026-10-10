@@ -857,29 +857,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: BottomNavigationBar(
         currentIndex: _currentNavIndex,
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const RideHistoryScreen()));
-            return;
-          }
-          setState(() => _currentNavIndex = index);
-          if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const UserProfileScreen()),
-            ).then((_) {
-              if (mounted) setState(() => _currentNavIndex = 0);
-            });
-          }
-          if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const WalletScreen()),
-            ).then((_) {
-              if (mounted) setState(() => _currentNavIndex = 0);
-            });
-          }
-        },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: const Color(0xFF0058FF),
@@ -893,6 +870,18 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_rounded), label: 'Wallet'),
           BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
+        onTap: (index) {
+          setState(() {
+            _currentNavIndex = index;
+          });
+          if (index == 1) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const RideHistoryScreen()));
+          } else if (index == 2) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const WalletScreen()));
+          } else if (index == 3) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const UserProfileScreen()));
+          }
+        },
       ),
     );
   }
