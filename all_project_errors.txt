@@ -1,0 +1,158 @@
+﻿=== FLASH2RIDE COMPLETE CODEBASE ANALYSIS REPORT ===
+Generated on: 09/13/2026 14:53:12
+Project: Flash 2 Ride (Nellore)
+
+SUMMARY:
+  Total Errors   : 11
+  Total Warnings : 1
+  Total Infos    : 51
+====================================================
+
+--- 1. CRITICAL COMPILATION ERRORS (11) ---
+  error - Target of URI doesn't exist: 'map_pin_picker_screen.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist - lib\screens\booking\destination_search_screen.dart:1:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../models/location_model.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist - lib\screens\home\location_search_screen.dart:3:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../services/location_service.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist - lib\screens\home\location_search_screen.dart:4:8 - uri_does_not_exist
+  error - The name 'LocationModel' isn't a type, so it can't be used as a type argument. Try correcting the name to an existing type, or defining a type named 'LocationModel' - lib\screens\home\location_search_screen.dart:18:8 - non_type_as_type_argument
+  error - The name 'LocationModel' isn't a type, so it can't be used as a type argument. Try correcting the name to an existing type, or defining a type named 'LocationModel' - lib\screens\home\location_search_screen.dart:19:8 - non_type_as_type_argument
+  error - Undefined name 'LocationService'. Try correcting the name to one that is defined, or defining the name - lib\screens\home\location_search_screen.dart:24:18 - undefined_identifier
+  error - The property 'title' can't be unconditionally accessed because the receiver can be 'null'. Try making the access conditional (using '?.') or adding a null check to the target ('!') - lib\screens\home\location_search_screen.dart:35:19 - unchecked_use_of_nullable_value
+  error - The property 'address' can't be unconditionally accessed because the receiver can be 'null'. Try making the access conditional (using '?.') or adding a null check to the target ('!') - lib\screens\home\location_search_screen.dart:36:19 - unchecked_use_of_nullable_value
+  error - Undefined class 'LocationModel'. Try changing the name to the name of an existing class, or creating a class with the name 'LocationModel' - lib\screens\home\location_search_screen.dart:43:27 - undefined_class
+  error - Invalid constant value - lib\screens\home\location_search_screen.dart:140:67 - invalid_constant
+  error - The getter 'info' isn't defined for the type 'AppColors'. Try importing the library that defines 'info', correcting the name to the name of an existing getter, or defining a getter or field named 'info' - lib\screens\home\location_search_screen.dart:140:77 - undefined_getter
+
+--- 2. WARNINGS (1) ---
+warning - Unused import: '../booking/ride_category_screen.dart'. Try removing the import directive - lib\screens\location\destination_search_screen.dart:3:8 - unused_import
+
+--- 3. LINTS & DEPRECATIONS (51) ---
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\flash_parcel_screen.dart:202:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\flash_parcel_screen.dart:210:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\flash_parcel_screen.dart:210:94 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\parcel_booking_screen.dart:202:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\parcel_booking_screen.dart:210:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\parcel_booking_screen.dart:210:94 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\qr_payment_screen.dart:394:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\features\power_pass_screen.dart:237:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\features\power_pass_screen.dart:237:90 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\features\wallet_screen.dart:207:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\home\map_pin_picker_screen.dart:156:56 - deprecated_member_use
+   info - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' - lib\screens\post_ride\rating_tip_screen.dart:58:5 - prefer_const_declarations
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\rating_tip_screen.dart:89:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\rating_tip_screen.dart:140:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\rating_tip_screen.dart:208:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\rating_tip_screen.dart:250:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\trip_invoice_screen.dart:49:43 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\post_ride\trip_invoice_screen.dart:114:21 - prefer_const_constructors
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\trip_invoice_screen.dart:142:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\trip_invoice_screen.dart:191:43 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\post_ride\trip_invoice_screen.dart:210:21 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal - lib\screens\post_ride\trip_invoice_screen.dart:211:33 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\post_ride\trip_invoice_screen.dart:218:21 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal - lib\screens\post_ride\trip_invoice_screen.dart:219:33 - prefer_const_literals_to_create_immutables
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\trip_invoice_screen.dart:239:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\cancel_ride_dialog.dart:72:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\cancel_ride_dialog.dart:145:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\cancel_ride_dialog.dart:248:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\finding_driver_screen.dart:40:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\in_ride_chat_screen.dart:217:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\in_ride_chat_screen.dart:265:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\live_tracking_screen.dart:88:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\live_tracking_screen.dart:153:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\live_tracking_screen.dart:398:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\live_tracking_screen.dart:453:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:86:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:106:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:228:41 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:267:21 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:313:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:325:30 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\live_tracking_screen.dart:88:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\live_tracking_screen.dart:153:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\live_tracking_screen.dart:398:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\live_tracking_screen.dart:453:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:232:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:249:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:252:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:269:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:282:112 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:355:41 - deprecated_member_use
+
+=== FULL RAW FLUTTER ANALYZE OUTPUT ===
+Resolving dependencies...
+Downloading packages...
+  flutter_lints 3.0.2 (6.0.0 available)
+  intl 0.19.0 (0.20.3 available)
+  lints 3.0.0 (6.1.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  test_api 0.7.12 (0.7.14 available)
+Got dependencies!
+6 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing flash_2_ride...                                       
+
+  error - Target of URI doesn't exist: 'map_pin_picker_screen.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist - lib\screens\booking\destination_search_screen.dart:1:8 - uri_does_not_exist
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\flash_parcel_screen.dart:202:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\flash_parcel_screen.dart:210:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\flash_parcel_screen.dart:210:94 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\parcel_booking_screen.dart:202:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\parcel_booking_screen.dart:210:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\parcel_booking_screen.dart:210:94 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\booking\qr_payment_screen.dart:394:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\features\power_pass_screen.dart:237:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\features\power_pass_screen.dart:237:90 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\features\wallet_screen.dart:207:60 - deprecated_member_use
+  error - Target of URI doesn't exist: '../../models/location_model.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist - lib\screens\home\location_search_screen.dart:3:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../services/location_service.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist - lib\screens\home\location_search_screen.dart:4:8 - uri_does_not_exist
+  error - The name 'LocationModel' isn't a type, so it can't be used as a type argument. Try correcting the name to an existing type, or defining a type named 'LocationModel' - lib\screens\home\location_search_screen.dart:18:8 - non_type_as_type_argument
+  error - The name 'LocationModel' isn't a type, so it can't be used as a type argument. Try correcting the name to an existing type, or defining a type named 'LocationModel' - lib\screens\home\location_search_screen.dart:19:8 - non_type_as_type_argument
+  error - Undefined name 'LocationService'. Try correcting the name to one that is defined, or defining the name - lib\screens\home\location_search_screen.dart:24:18 - undefined_identifier
+  error - The property 'title' can't be unconditionally accessed because the receiver can be 'null'. Try making the access conditional (using '?.') or adding a null check to the target ('!') - lib\screens\home\location_search_screen.dart:35:19 - unchecked_use_of_nullable_value
+  error - The property 'address' can't be unconditionally accessed because the receiver can be 'null'. Try making the access conditional (using '?.') or adding a null check to the target ('!') - lib\screens\home\location_search_screen.dart:36:19 - unchecked_use_of_nullable_value
+  error - Undefined class 'LocationModel'. Try changing the name to the name of an existing class, or creating a class with the name 'LocationModel' - lib\screens\home\location_search_screen.dart:43:27 - undefined_class
+  error - Invalid constant value - lib\screens\home\location_search_screen.dart:140:67 - invalid_constant
+  error - The getter 'info' isn't defined for the type 'AppColors'. Try importing the library that defines 'info', correcting the name to the name of an existing getter, or defining a getter or field named 'info' - lib\screens\home\location_search_screen.dart:140:77 - undefined_getter
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\home\map_pin_picker_screen.dart:156:56 - deprecated_member_use
+warning - Unused import: '../booking/ride_category_screen.dart'. Try removing the import directive - lib\screens\location\destination_search_screen.dart:3:8 - unused_import
+   info - Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' - lib\screens\post_ride\rating_tip_screen.dart:58:5 - prefer_const_declarations
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\rating_tip_screen.dart:89:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\rating_tip_screen.dart:140:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\rating_tip_screen.dart:208:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\rating_tip_screen.dart:250:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\trip_invoice_screen.dart:49:43 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\post_ride\trip_invoice_screen.dart:114:21 - prefer_const_constructors
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\trip_invoice_screen.dart:142:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\trip_invoice_screen.dart:191:43 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\post_ride\trip_invoice_screen.dart:210:21 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal - lib\screens\post_ride\trip_invoice_screen.dart:211:33 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation - lib\screens\post_ride\trip_invoice_screen.dart:218:21 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes. Try adding 'const' before the literal - lib\screens\post_ride\trip_invoice_screen.dart:219:33 - prefer_const_literals_to_create_immutables
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\post_ride\trip_invoice_screen.dart:239:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\cancel_ride_dialog.dart:72:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\cancel_ride_dialog.dart:145:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\cancel_ride_dialog.dart:248:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\finding_driver_screen.dart:40:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\in_ride_chat_screen.dart:217:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\in_ride_chat_screen.dart:265:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\live_tracking_screen.dart:88:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\live_tracking_screen.dart:153:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\live_tracking_screen.dart:398:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\ride\live_tracking_screen.dart:453:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:86:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:106:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:228:41 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:267:21 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:313:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\safety\safety_toolkit_screen.dart:325:30 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\live_tracking_screen.dart:88:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\live_tracking_screen.dart:153:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\live_tracking_screen.dart:398:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\live_tracking_screen.dart:453:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:232:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:249:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:252:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:269:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:282:112 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement - lib\screens\tracking\searching_partner_screen.dart:355:41 - deprecated_member_use
+
+63 issues found. (ran in 3.8s)
