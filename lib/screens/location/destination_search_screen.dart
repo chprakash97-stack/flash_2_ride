@@ -2,7 +2,9 @@
 import 'package:flutter/material.dart';
 
 class DestinationSearchScreen extends StatefulWidget {
-  const DestinationSearchScreen({super.key});
+  final String? selectedVehicle; // వెహికల్ లేదా పార్సెల్ టైప్‌ను రిసీవ్ చేసుకోవడానికి
+
+  const DestinationSearchScreen({super.key, this.selectedVehicle});
 
   @override
   State<DestinationSearchScreen> createState() => _DestinationSearchScreenState();
@@ -51,6 +53,9 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // సెలెక్ట్ అయిన వెహికల్ లేదా పార్సెల్ టైప్‌ని ఇక్కడ క్యాప్చర్ చేస్తున్నాము
+    final String vehicle = widget.selectedVehicle ?? 'Bike';
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -60,9 +65,9 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Pickup Location',
-          style: TextStyle(
+        title: Text(
+          vehicle == 'Parcel' ? 'Send a Parcel' : 'Select Destination ($vehicle)',
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -86,7 +91,7 @@ class _DestinationSearchScreenState extends State<DestinationSearchScreen> {
                         border: Border.all(color: const Color(0xFFE2E8F0)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
+                            color: Colors.black.withOpacity(0.04),
                             blurRadius: 10,
                             offset: const Offset(0, 2),
                           ),

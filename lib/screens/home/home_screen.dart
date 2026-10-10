@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Google Map Controller & Default Location (Nellore)
-  final Completer<GoogleMapController> _mapController = Completer();
+  GoogleMapController? _mapController;
   static const LatLng _nelloreDefault = LatLng(14.4426, 79.9865);
   LatLng _currentLatLng = _nelloreDefault;
 
@@ -71,26 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<Marker> _markers = {};
 
   final List<Map<String, dynamic>> _defaultVehicles = [
-    {
-      'name': 'Bike',
-      'image': 'assets/images/vehicle_bike.png',
-      'icon': Icons.two_wheeler_rounded
-    },
-    {
-      'name': 'Auto',
-      'image': 'assets/images/vehicle_auto.png',
-      'icon': Icons.electric_rickshaw_rounded
-    },
-    {
-      'name': 'Cab',
-      'image': 'assets/images/vehicle_cab.png',
-      'icon': Icons.local_taxi_rounded
-    },
-    {
-      'name': 'Parcel',
-      'image': 'assets/images/vehicle_parcel.png',
-      'icon': Icons.inventory_2_rounded
-    },
+    {'name': 'Bike', 'image': 'assets/images/vehicle_bike.png', 'icon': Icons.two_wheeler_rounded},
+    {'name': 'Auto', 'image': 'assets/images/vehicle_auto.png', 'icon': Icons.electric_rickshaw_rounded},
+    {'name': 'Cab', 'image': 'assets/images/vehicle_cab.png', 'icon': Icons.local_taxi_rounded},
+    {'name': 'Parcel', 'image': 'assets/images/vehicle_parcel.png', 'icon': Icons.inventory_2_rounded},
   ];
 
   @override
@@ -102,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _positionStreamSubscription?.cancel();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -129,13 +114,11 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       final position = await Geolocator.getCurrentPosition(
-        locationSettings:
-            const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
 
       final newLatLng = LatLng(position.latitude, position.longitude);
-      await _updateAddressFromCoordinates(
-          position.latitude, position.longitude);
+      await _updateAddressFromCoordinates(position.latitude, position.longitude);
 
       if (mounted) {
         setState(() {
@@ -148,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _positionStreamSubscription = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
-          distanceFilter: 20,
+          distanceFilter: 15,
         ),
       ).listen((pos) {
         if (mounted) {
@@ -173,8 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final city = place.locality ?? place.administrativeArea ?? 'Nellore';
         final state = place.administrativeArea ?? 'Andhra Pradesh';
 
-        final formatted =
-            subLocality.isNotEmpty ? '$subLocality, $city' : '$city, $state';
+        final formatted = subLocality.isNotEmpty ? '$subLocality, $city' : '$city, $state';
         if (mounted) {
           setState(() {
             _currentAddress = formatted;
@@ -186,24 +168,23 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Recenter Camera Animation
+  /// Recenter Camera Animation (Fast & Smooth)
   Future<void> _recenterCamera([LatLng? target]) async {
-    final GoogleMapController controller = await _mapController.future;
-    controller.animateCamera(
+    if (_mapController == null) return;
+    _mapController!.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
           target: target ?? _currentLatLng,
-          zoom: 15.5,
+          zoom: 16.0,
         ),
       ),
     );
   }
 
-  /// Update Driver Markers from Firestore Stream
+  /// Update Driver Markers Optimized
   void _updateDriverMarkers(List<NearbyDriver> drivers) {
     final Set<Marker> updatedMarkers = {};
 
-    // Current User Marker
     updatedMarkers.add(
       Marker(
         markerId: const MarkerId('user_location'),
@@ -213,7 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    // Live Drivers Markers
     for (var driver in drivers) {
       double hue = BitmapDescriptor.hueGreen;
       if (driver.vehicleType == 'Cab') {
@@ -234,9 +214,11 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    setState(() {
-      _markers = updatedMarkers;
-    });
+    if (mounted) {
+      setState(() {
+        _markers = updatedMarkers;
+      });
+    }
   }
 
   /// Logout Action
@@ -263,8 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (shouldLogout == true) {
       await _auth.signOut();
       if (mounted) {
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/login', (route) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
       }
     }
   }
@@ -278,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: _buildDrawer(currentUser),
       body: Stack(
         children: [
-          // 1. LAYER 1: Live Google Map
+          // 1. LAYER 1: Optimized High-Performance Google Map
           StreamBuilder<QuerySnapshot>(
             stream: _firestore
                 .collection('drivers')
@@ -294,25 +275,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }).toList();
 
+                // Non-blocking marker update
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   _updateDriverMarkers(drivers);
                 });
               }
 
               return GoogleMap(
-                initialCameraPosition: const CameraPosition(
-                  target: _nelloreDefault,
-                  zoom: 15.0,
+                initialCameraPosition: CameraPosition(
+                  target: _currentLatLng,
+                  zoom: 16.0,
                 ),
                 myLocationEnabled: true,
                 myLocationButtonEnabled: false,
                 zoomControlsEnabled: false,
                 mapToolbarEnabled: false,
-                padding: const EdgeInsets.only(
-                    bottom: 230, top: 90), // Bottom card padding
+                compassEnabled: true,
+                rotateGesturesEnabled: true,
+                scrollGesturesEnabled: true,
+                zoomGesturesEnabled: true,
+                tiltGesturesEnabled: true,
+                padding: const EdgeInsets.only(bottom: 230, top: 90),
                 markers: _markers,
                 onMapCreated: (GoogleMapController controller) {
-                  _mapController.complete(controller);
+                  _mapController = controller;
                 },
               );
             },
@@ -326,8 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(25),
@@ -348,8 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Color(0xFF0058FF),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.location_on,
-                          color: Colors.white, size: 14),
+                      child: const Icon(Icons.location_on, color: Colors.white, size: 14),
                     ),
                     const SizedBox(width: 8),
                     Flexible(
@@ -369,8 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ? const SizedBox(
                                   height: 12,
                                   width: 12,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : Text(
                                   _currentAddress,
@@ -408,8 +391,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               child: IconButton(
-                icon: const Icon(Icons.my_location_rounded,
-                    color: Color(0xFF0058FF), size: 22),
+                icon: const Icon(Icons.my_location_rounded, color: Color(0xFF0058FF), size: 22),
                 tooltip: 'Recenter Map',
                 onPressed: () {
                   _recenterCamera();
@@ -445,10 +427,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: currentUser == null
           ? const Center(child: Text('No active user found'))
           : StreamBuilder<DocumentSnapshot>(
-              stream: _firestore
-                  .collection('users')
-                  .doc(currentUser.uid)
-                  .snapshots(),
+              stream: _firestore.collection('users').doc(currentUser.uid).snapshots(),
               builder: (context, snapshot) {
                 String displayName = currentUser.displayName ?? 'User';
                 String email = currentUser.email ?? '';
@@ -460,8 +439,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   displayName = data['name'] ?? displayName;
                   email = data['email'] ?? email;
                   photoUrl = data['profilePic'] ?? photoUrl;
-                  walletBalance =
-                      (data['walletBalance'] as num?)?.toDouble() ?? 0.0;
+                  walletBalance = (data['walletBalance'] as num?)?.toDouble() ?? 0.0;
                 }
 
                 return ListView(
@@ -471,15 +449,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: const BoxDecoration(color: Color(0xFF2563EB)),
                       currentAccountPicture: CircleAvatar(
                         backgroundColor: Colors.white,
-                        backgroundImage:
-                            (photoUrl != null && photoUrl.isNotEmpty)
-                                ? NetworkImage(photoUrl)
-                                : null,
+                        backgroundImage: (photoUrl != null && photoUrl.isNotEmpty)
+                            ? NetworkImage(photoUrl)
+                            : null,
                         child: (photoUrl == null || photoUrl.isEmpty)
                             ? Text(
-                                displayName.isNotEmpty
-                                    ? displayName[0].toUpperCase()
-                                    : 'U',
+                                displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
                                 style: const TextStyle(
                                   fontSize: 26,
                                   fontWeight: FontWeight.bold,
@@ -490,166 +465,87 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       accountName: Text(
                         displayName,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       accountEmail: Text(email),
                     ),
-
-                    // 1. Refer & Earn
                     ListTile(
-                      leading: const Icon(Icons.card_giftcard_rounded,
-                          color: Color(0xFF059669)),
-                      title: const Text('Refer & Earn',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: const Text('Get Wallet Bonus',
-                          style: TextStyle(
-                              fontSize: 12, color: Color(0xFF64748B))),
+                      leading: const Icon(Icons.card_giftcard_rounded, color: Color(0xFF059669)),
+                      title: const Text('Refer & Earn', style: TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: const Text('Get Wallet Bonus', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const ReferEarnScreen()),
-                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ReferEarnScreen()));
                       },
                     ),
-
-                    // 2. Ride History
                     ListTile(
-                      leading: const Icon(Icons.history_rounded,
-                          color: Color(0xFF2563EB)),
-                      title: const Text('Ride History',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      leading: const Icon(Icons.history_rounded, color: Color(0xFF2563EB)),
+                      title: const Text('Ride History', style: TextStyle(fontWeight: FontWeight.w600)),
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const RideHistoryScreen()),
-                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const RideHistoryScreen()));
                       },
                     ),
-
-                    // 3. Flash Wallet
                     ListTile(
-                      leading: const Icon(Icons.account_balance_wallet_outlined,
-                          color: Color(0xFFD97706)),
-                      title: const Text('Flash Wallet',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      leading: const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFFD97706)),
+                      title: const Text('Flash Wallet', style: TextStyle(fontWeight: FontWeight.w600)),
                       trailing: Text(
                         '₹${walletBalance.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFD97706)),
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
                       ),
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const WalletScreen()),
-                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const WalletScreen()));
                       },
                     ),
-
-                    // 4. Power Pass
                     ListTile(
-                      leading: const Icon(Icons.bolt_rounded,
-                          color: Color(0xFFF59E0B)),
-                      title: const Text('Power Pass (Subscriptions)',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      leading: const Icon(Icons.bolt_rounded, color: Color(0xFFF59E0B)),
+                      title: const Text('Power Pass (Subscriptions)', style: TextStyle(fontWeight: FontWeight.w600)),
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const PowerPassScreen()),
-                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const PowerPassScreen()));
                       },
                     ),
-
-                    // 5. Payment Methods
                     ListTile(
-                      leading: const Icon(Icons.payment_rounded,
-                          color: Color(0xFF2563EB)),
-                      title: const Text('Payment Methods',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      leading: const Icon(Icons.payment_rounded, color: Color(0xFF2563EB)),
+                      title: const Text('Payment Methods', style: TextStyle(fontWeight: FontWeight.w600)),
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  const PaymentMethodsScreen()),
-                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const PaymentMethodsScreen()));
                       },
                     ),
-
-                    // 6. Saved Places
                     ListTile(
-                      leading: const Icon(Icons.bookmark_border_rounded,
-                          color: Color(0xFF2563EB)),
-                      title: const Text('Saved Places',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      leading: const Icon(Icons.bookmark_border_rounded, color: Color(0xFF2563EB)),
+                      title: const Text('Saved Places', style: TextStyle(fontWeight: FontWeight.w600)),
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const SavedPlacesScreen()),
-                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const SavedPlacesScreen()));
                       },
                     ),
-
-                    // 7. Help & Support
                     ListTile(
-                      leading: const Icon(Icons.help_outline_rounded,
-                          color: Color(0xFF2563EB)),
-                      title: const Text('Help & Support',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      leading: const Icon(Icons.help_outline_rounded, color: Color(0xFF2563EB)),
+                      title: const Text('Help & Support', style: TextStyle(fontWeight: FontWeight.w600)),
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const HelpSupportScreen()),
-                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const HelpSupportScreen()));
                       },
                     ),
-
-                    // 8. About Us
                     ListTile(
-                      leading: const Icon(Icons.info_outline_rounded,
-                          color: Color(0xFF2563EB)),
-                      title: const Text('About Us',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: const Text('Version 1.0.0 & Legal Policy',
-                          style: TextStyle(
-                              fontSize: 11, color: Color(0xFF64748B))),
-                      trailing: const Icon(Icons.chevron_right,
-                          size: 20, color: Color(0xFF94A3B8)),
+                      leading: const Icon(Icons.info_outline_rounded, color: Color(0xFF2563EB)),
+                      title: const Text('About Us', style: TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: const Text('Version 1.0.0 & Legal Policy', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                      trailing: const Icon(Icons.chevron_right, size: 20, color: Color(0xFF94A3B8)),
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const AboutUsScreen()),
-                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutUsScreen()));
                       },
                     ),
-
                     const Divider(),
-
-                    // 9. Sign Out Button
                     ListTile(
-                      leading: const Icon(Icons.logout_rounded,
-                          color: Colors.redAccent),
+                      leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
                       title: const Text(
                         'Log Out',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.redAccent),
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent),
                       ),
                       onTap: () {
                         Navigator.pop(context);
@@ -681,8 +577,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Builder(
                 builder: (ctx) => IconButton(
-                  icon: const Icon(Icons.menu_rounded,
-                      color: Colors.white, size: 32),
+                  icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 32),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   onPressed: () => Scaffold.of(ctx).openDrawer(),
@@ -697,10 +592,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     errorBuilder: (context, error, stackTrace) {
                       return const Text(
                         'Flash2Ride',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                       );
                     },
                   ),
@@ -715,15 +607,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       .where('isRead', isEqualTo: false)
                       .snapshots(),
                   builder: (context, snapshot) {
-                    final int unreadCount =
-                        snapshot.hasData ? snapshot.data!.docs.length : 0;
+                    final int unreadCount = snapshot.hasData ? snapshot.data!.docs.length : 0;
 
                     return Stack(
                       clipBehavior: Clip.none,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.notifications_none_rounded,
-                              color: Colors.white, size: 28),
+                          icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 28),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           onPressed: () {},
@@ -754,8 +644,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               else
                 IconButton(
-                  icon: const Icon(Icons.notifications_none_rounded,
-                      color: Colors.white, size: 28),
+                  icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 28),
                   onPressed: () {},
                 ),
             ],
@@ -801,12 +690,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 12),
+
           GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const DestinationSearchScreen(),
+                  builder: (context) => DestinationSearchScreen(
+                    selectedVehicle: _selectedVehicle,
+                  ),
                 ),
               );
             },
@@ -819,12 +711,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.my_location_rounded,
-                      color: Color(0xFF0058FF), size: 20),
+                  Icon(
+                    _selectedVehicle == 'Parcel' ? Icons.inventory_2_rounded : Icons.my_location_rounded,
+                    color: const Color(0xFF0058FF),
+                    size: 20,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Pickup: $_currentAddress',
+                      _selectedVehicle == 'Parcel'
+                          ? 'Send a Parcel from: $_currentAddress'
+                          : 'Pickup: $_currentAddress',
                       style: const TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
@@ -833,13 +730,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Icon(Icons.chevron_right_rounded,
-                      color: Color(0xFF64748B), size: 22),
+                  const Icon(Icons.chevron_right_rounded, color: Color(0xFF64748B), size: 22),
                 ],
               ),
             ),
           ),
+
           const SizedBox(height: 18),
+
           StreamBuilder<QuerySnapshot>(
             stream: _firestore
                 .collection('vehicle_types')
@@ -853,8 +751,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   final data = doc.data() as Map<String, dynamic>;
                   final name = data['name'] ?? 'Vehicle';
                   IconData icon = Icons.directions_car_rounded;
-                  String image =
-                      'assets/images/vehicle_${name.toLowerCase()}.png';
+                  String image = 'assets/images/vehicle_${name.toLowerCase()}.png';
 
                   if (name == 'Bike') icon = Icons.two_wheeler_rounded;
                   if (name == 'Auto') icon = Icons.electric_rickshaw_rounded;
@@ -889,8 +786,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Vehicle Item Widget
-  Widget _buildVehicleItem(String name, String imagePath, IconData fallbackIcon,
-      {String? eta}) {
+  Widget _buildVehicleItem(String name, String imagePath, IconData fallbackIcon, {String? eta}) {
     final isSelected = _selectedVehicle == name;
 
     return GestureDetector(
@@ -909,9 +805,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: isSelected
-                    ? const Color(0xFF0058FF)
-                    : const Color(0xFFE2E8F0),
+                color: isSelected ? const Color(0xFF0058FF) : const Color(0xFFE2E8F0),
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -922,9 +816,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 errorBuilder: (context, error, stackTrace) {
                   return Icon(
                     fallbackIcon,
-                    color: isSelected
-                        ? const Color(0xFF0058FF)
-                        : const Color(0xFF475569),
+                    color: isSelected ? const Color(0xFF0058FF) : const Color(0xFF475569),
                     size: 28,
                   );
                 },
@@ -937,18 +829,13 @@ class _HomeScreenState extends State<HomeScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-              color: isSelected
-                  ? const Color(0xFF0058FF)
-                  : const Color(0xFF334155),
+              color: isSelected ? const Color(0xFF0058FF) : const Color(0xFF334155),
             ),
           ),
           if (eta != null && eta.isNotEmpty)
             Text(
               eta,
-              style: const TextStyle(
-                  fontSize: 10,
-                  color: Color(0xFF64748B),
-                  fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.bold),
             ),
         ],
       ),
@@ -972,18 +859,14 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _currentNavIndex,
         onTap: (index) {
           if (index == 1) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const RideHistoryScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const RideHistoryScreen()));
             return;
           }
           setState(() => _currentNavIndex = index);
           if (index == 3) {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (context) => const UserProfileScreen()),
+              MaterialPageRoute(builder: (context) => const UserProfileScreen()),
             ).then((_) {
               if (mounted) setState(() => _currentNavIndex = 0);
             });
@@ -1001,20 +884,14 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         selectedItemColor: const Color(0xFF0058FF),
         unselectedItemColor: const Color(0xFF94A3B8),
-        selectedLabelStyle:
-            const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-        unselectedLabelStyle:
-            const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
         elevation: 0,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.history_rounded), label: 'History'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_rounded),
-              label: 'Wallet'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded), label: 'Profile'),
+          BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: 'History'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_rounded), label: 'Wallet'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
       ),
     );
