@@ -18,30 +18,6 @@ import '../features/power_pass_screen.dart';
 import '../features/wallet_screen.dart';
 import '../location/destination_search_screen.dart';
 
-/// Driver Model for Firestore Stream
-class NearbyDriver {
-  final String id;
-  final String vehicleType;
-  final double latitude;
-  final double longitude;
-
-  NearbyDriver({
-    required this.id,
-    required this.vehicleType,
-    required this.latitude,
-    required this.longitude,
-  });
-
-  factory NearbyDriver.fromFirestore(Map<String, dynamic> data, String id) {
-    return NearbyDriver(
-      id: id,
-      vehicleType: data['vehicleType'] ?? 'Bike',
-      latitude: (data['latitude'] as num?)?.toDouble() ?? 14.4426,
-      longitude: (data['longitude'] as num?)?.toDouble() ?? 79.9865,
-    );
-  }
-}
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -57,41 +33,31 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Google Map Controller & Default Location (Nellore)
-  GoogleMapController? _mapController;
+  // Nellore Default Coordinates
   static const LatLng _nelloreDefault = LatLng(14.4426, 79.9865);
   LatLng _currentLatLng = _nelloreDefault;
 
-  // Location States
+  // GlobalKey to control map without rebuilding Home
+  final GlobalKey<_FastGoogleMapViewState> _mapKey = GlobalKey<_FastGoogleMapViewState>();
+
   String _currentAddress = 'Nellore, Andhra Pradesh';
   bool _isLoadingLocation = true;
-  StreamSubscription<Position>? _positionStreamSubscription;
-
-  // Map Markers
-  Set<Marker> _markers = {};
 
   final List<Map<String, dynamic>> _defaultVehicles = [
-    {'name': 'Bike', 'image': 'assets/images/vehicle_bike.png', 'icon': Icons.two_wheeler_rounded},
-    {'name': 'Auto', 'image': 'assets/images/vehicle_auto.png', 'icon': Icons.electric_rickshaw_rounded},
-    {'name': 'Cab', 'image': 'assets/images/vehicle_cab.png', 'icon': Icons.local_taxi_rounded},
-    {'name': 'Parcel', 'image': 'assets/images/vehicle_parcel.png', 'icon': Icons.inventory_2_rounded},
+    {'name': 'Bike', 'image': 'assets/images/vehicle_bike.png', 'icon': Icons.two_wheeler_rounded, 'eta': '2 mins'},
+    {'name': 'Auto', 'image': 'assets/images/vehicle_auto.png', 'icon': Icons.electric_rickshaw_rounded, 'eta': '4 mins'},
+    {'name': 'Cab', 'image': 'assets/images/vehicle_cab.png', 'icon': Icons.local_taxi_rounded, 'eta': '6 mins'},
+    {'name': 'Parcel', 'image': 'assets/images/parcel/parcel_box.png', 'icon': Icons.inventory_2_rounded, 'eta': 'Instant'},
   ];
 
   @override
   void initState() {
     super.initState();
-    _initLocation();
+    _fetchLocationOnce();
   }
 
-  @override
-  void dispose() {
-    _positionStreamSubscription?.cancel();
-    _mapController?.dispose();
-    super.dispose();
-  }
-
-  /// Device GPS Location & Reverse Geocoding
-  Future<void> _initLocation() async {
+  /// యాప్ ఓపెన్ అయినప్పుడు ఒక్కసారి మాత్రమే GPS & Address తీసుకోవడం (UI హ్యాంగ్ అవ్వకుండా)
+  Future<void> _fetchLocationOnce() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -114,110 +80,32 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium),
       );
 
       final newLatLng = LatLng(position.latitude, position.longitude);
-      await _updateAddressFromCoordinates(position.latitude, position.longitude);
+      _currentLatLng = newLatLng;
 
-      if (mounted) {
-        setState(() {
-          _currentLatLng = newLatLng;
-          _isLoadingLocation = false;
-        });
-        _recenterCamera(newLatLng);
-      }
+      // కెమెరాను కరెంట్ లొకేషన్‌కు మూవ్ చేయడం
+      _mapKey.currentState?.animateToLocation(newLatLng);
 
-      _positionStreamSubscription = Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 15,
-        ),
-      ).listen((pos) {
-        if (mounted) {
-          final updatedLatLng = LatLng(pos.latitude, pos.longitude);
-          setState(() => _currentLatLng = updatedLatLng);
-          _updateAddressFromCoordinates(pos.latitude, pos.longitude);
-        }
-      });
-    } catch (e) {
-      debugPrint('Location Error: $e');
-      if (mounted) setState(() => _isLoadingLocation = false);
-    }
-  }
-
-  /// Geocoding Address
-  Future<void> _updateAddressFromCoordinates(double lat, double lng) async {
-    try {
-      final placemarks = await placemarkFromCoordinates(lat, lng);
-      if (placemarks.isNotEmpty) {
+      // ఒక్కసారి అడ్రస్ తీసుకోవడం
+      final placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      if (placemarks.isNotEmpty && mounted) {
         final place = placemarks.first;
         final subLocality = place.subLocality ?? place.locality ?? '';
         final city = place.locality ?? place.administrativeArea ?? 'Nellore';
         final state = place.administrativeArea ?? 'Andhra Pradesh';
-
         final formatted = subLocality.isNotEmpty ? '$subLocality, $city' : '$city, $state';
-        if (mounted) {
-          setState(() {
-            _currentAddress = formatted;
-          });
-        }
+
+        setState(() {
+          _currentAddress = formatted;
+          _isLoadingLocation = false;
+        });
       }
     } catch (e) {
-      debugPrint('Geocoding error: $e');
-    }
-  }
-
-  /// Recenter Camera Animation (Fast & Smooth)
-  Future<void> _recenterCamera([LatLng? target]) async {
-    if (_mapController == null) return;
-    _mapController!.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: target ?? _currentLatLng,
-          zoom: 16.0,
-        ),
-      ),
-    );
-  }
-
-  /// Update Driver Markers Optimized
-  void _updateDriverMarkers(List<NearbyDriver> drivers) {
-    final Set<Marker> updatedMarkers = {};
-
-    updatedMarkers.add(
-      Marker(
-        markerId: const MarkerId('user_location'),
-        position: _currentLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-        infoWindow: const InfoWindow(title: 'My Location'),
-      ),
-    );
-
-    for (var driver in drivers) {
-      double hue = BitmapDescriptor.hueGreen;
-      if (driver.vehicleType == 'Cab') {
-        hue = BitmapDescriptor.hueViolet;
-      } else if (driver.vehicleType == 'Auto') {
-        hue = BitmapDescriptor.hueOrange;
-      } else if (driver.vehicleType == 'Parcel') {
-        hue = BitmapDescriptor.hueBlue;
-      }
-
-      updatedMarkers.add(
-        Marker(
-          markerId: MarkerId(driver.id),
-          position: LatLng(driver.latitude, driver.longitude),
-          icon: BitmapDescriptor.defaultMarkerWithHue(hue),
-          infoWindow: InfoWindow(title: '${driver.vehicleType} Driver'),
-        ),
-      );
-    }
-
-    if (mounted) {
-      setState(() {
-        _markers = updatedMarkers;
-      });
+      debugPrint('Location Error: $e');
+      if (mounted) setState(() => _isLoadingLocation = false);
     }
   }
 
@@ -229,10 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Log Out'),
         content: const Text('Are you sure you want to log out?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
@@ -244,9 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (shouldLogout == true) {
       await _auth.signOut();
-      if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-      }
+      if (mounted) Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     }
   }
 
@@ -259,52 +142,19 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: _buildDrawer(currentUser),
       body: Stack(
         children: [
-          // 1. LAYER 1: Optimized High-Performance Google Map
-          StreamBuilder<QuerySnapshot>(
-            stream: _firestore
-                .collection('drivers')
-                .where('isOnline', isEqualTo: true)
-                .where('isAvailable', isEqualTo: true)
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                final drivers = snapshot.data!.docs.map((doc) {
-                  return NearbyDriver.fromFirestore(
-                    doc.data() as Map<String, dynamic>,
-                    doc.id,
-                  );
-                }).toList();
-
-                // Non-blocking marker update
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _updateDriverMarkers(drivers);
-                });
-              }
-
-              return GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: _currentLatLng,
-                  zoom: 16.0,
-                ),
-                myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                zoomControlsEnabled: false,
-                mapToolbarEnabled: false,
-                compassEnabled: true,
-                rotateGesturesEnabled: true,
-                scrollGesturesEnabled: true,
-                zoomGesturesEnabled: true,
-                tiltGesturesEnabled: true,
-                padding: const EdgeInsets.only(bottom: 230, top: 90),
-                markers: _markers,
-                onMapCreated: (GoogleMapController controller) {
-                  _mapController = controller;
-                },
-              );
-            },
+          // -------------------------------------------------------------
+          // 1. LAYER 1: సపరేట్ ఐసోలేటెడ్ గూగుల్ మ్యాప్ (100% Zero-Lag)
+          // -------------------------------------------------------------
+          Positioned.fill(
+            child: FastGoogleMapView(
+              key: _mapKey,
+              initialCenter: _nelloreDefault,
+            ),
           ),
 
-          // 2. Current Location Tooltip Bubble
+          // -------------------------------------------------------------
+          // 2. LAYER 2: కరెంట్ లొకేషన్ బబుల్ & రీ-సెంటర్ బటన్
+          // -------------------------------------------------------------
           Positioned(
             top: MediaQuery.of(context).padding.top + 85,
             left: 20,
@@ -317,11 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
+                    BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 10, offset: const Offset(0, 3)),
                   ],
                 ),
                 child: Row(
@@ -329,10 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF0058FF),
-                        shape: BoxShape.circle,
-                      ),
+                      decoration: const BoxDecoration(color: Color(0xFF0058FF), shape: BoxShape.circle),
                       child: const Icon(Icons.location_on, color: Colors.white, size: 14),
                     ),
                     const SizedBox(width: 8),
@@ -343,25 +186,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           const Text(
                             'Current Location',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0058FF),
-                            ),
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0058FF)),
                           ),
                           _isLoadingLocation
-                              ? const SizedBox(
-                                  height: 12,
-                                  width: 12,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
+                              ? const SizedBox(height: 12, width: 12, child: CircularProgressIndicator(strokeWidth: 2))
                               : Text(
                                   _currentAddress,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF475569),
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  style: const TextStyle(fontSize: 11, color: Color(0xFF475569), fontWeight: FontWeight.w500),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -374,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // 3. Recenter GPS Button
+          // Re-center Button
           Positioned(
             top: MediaQuery.of(context).padding.top + 85,
             right: 16,
@@ -383,24 +214,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Colors.white,
                 shape: BoxShape.circle,
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.12),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
+                  BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 2)),
                 ],
               ),
               child: IconButton(
                 icon: const Icon(Icons.my_location_rounded, color: Color(0xFF0058FF), size: 22),
                 tooltip: 'Recenter Map',
-                onPressed: () {
-                  _recenterCamera();
-                },
+                onPressed: () => _mapKey.currentState?.animateToLocation(_currentLatLng),
               ),
             ),
           ),
 
-          // 4. LAYER 2: Header Bar
+          // -------------------------------------------------------------
+          // 3. LAYER 3: హెడర్ బార్
+          // -------------------------------------------------------------
           Positioned(
             top: 0,
             left: 0,
@@ -408,7 +235,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: _buildTopHeader(currentUser?.uid),
           ),
 
-          // 5. LAYER 3: Bottom Floating Card
+          // -------------------------------------------------------------
+          // 4. LAYER 4: "Where to?" & వాహనాల కార్డ్
+          // -------------------------------------------------------------
           Positioned(
             left: 14,
             right: 14,
@@ -421,7 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Side Drawer Connected with Firestore Profile Data
+  /// Drawer Widget
   Widget _buildDrawer(User? currentUser) {
     return Drawer(
       child: currentUser == null
@@ -449,24 +278,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: const BoxDecoration(color: Color(0xFF2563EB)),
                       currentAccountPicture: CircleAvatar(
                         backgroundColor: Colors.white,
-                        backgroundImage: (photoUrl != null && photoUrl.isNotEmpty)
-                            ? NetworkImage(photoUrl)
-                            : null,
+                        backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null,
                         child: (photoUrl == null || photoUrl.isEmpty)
                             ? Text(
                                 displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
-                                style: const TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2563EB),
-                                ),
+                                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
                               )
                             : null,
                       ),
-                      accountName: Text(
-                        displayName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
+                      accountName: Text(displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       accountEmail: Text(email),
                     ),
                     ListTile(
@@ -489,10 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ListTile(
                       leading: const Icon(Icons.account_balance_wallet_outlined, color: Color(0xFFD97706)),
                       title: const Text('Flash Wallet', style: TextStyle(fontWeight: FontWeight.w600)),
-                      trailing: Text(
-                        '₹${walletBalance.toStringAsFixed(2)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
-                      ),
+                      trailing: Text('₹${walletBalance.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD97706))),
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const WalletScreen()));
@@ -543,10 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Divider(),
                     ListTile(
                       leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                      title: const Text(
-                        'Log Out',
-                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent),
-                      ),
+                      title: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)),
                       onTap: () {
                         Navigator.pop(context);
                         _handleSignOut();
@@ -559,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Top Header Bar
+  /// Top Header
   Widget _buildTopHeader(String? userId) {
     const Color brandRoyalBlue = Color(0xFF0058FF);
 
@@ -624,17 +438,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             top: 0,
                             child: Container(
                               padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.redAccent,
-                                shape: BoxShape.circle,
-                              ),
+                              decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
                               child: Text(
                                 unreadCount > 9 ? '9+' : '$unreadCount',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),
@@ -654,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Where to & Vehicle Selector Card
+  /// Where To & Vehicles Card
   Widget _buildWhereToAndVehiclesCard() {
     return Container(
       width: double.infinity,
@@ -663,11 +470,7 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20, offset: const Offset(0, 6)),
         ],
       ),
       child: Column(
@@ -719,9 +522,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      _selectedVehicle == 'Parcel'
-                          ? 'Send a Parcel from: $_currentAddress'
-                          : 'Pickup: $_currentAddress',
+                      _selectedVehicle == 'Parcel' ? 'Send a Parcel from: $_currentAddress' : 'Pickup: $_currentAddress',
                       style: const TextStyle(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
@@ -739,10 +540,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 18),
 
           StreamBuilder<QuerySnapshot>(
-            stream: _firestore
-                .collection('vehicle_types')
-                .where('isActive', isEqualTo: true)
-                .snapshots(),
+            stream: _firestore.collection('vehicle_types').where('isActive', isEqualTo: true).snapshots(),
             builder: (context, snapshot) {
               List<Map<String, dynamic>> vehicles = _defaultVehicles;
 
@@ -756,7 +554,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (name == 'Bike') icon = Icons.two_wheeler_rounded;
                   if (name == 'Auto') icon = Icons.electric_rickshaw_rounded;
                   if (name == 'Cab') icon = Icons.local_taxi_rounded;
-                  if (name == 'Parcel') icon = Icons.inventory_2_rounded;
+                  if (name == 'Parcel') {
+                    icon = Icons.inventory_2_rounded;
+                    image = 'assets/images/parcel/parcel_box.png';
+                  }
 
                   return {
                     'name': name,
@@ -800,9 +601,7 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 60,
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFF0058FF).withOpacity(0.1)
-                  : const Color(0xFFF8FAFC),
+              color: isSelected ? const Color(0xFF0058FF).withOpacity(0.1) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
                 color: isSelected ? const Color(0xFF0058FF) : const Color(0xFFE2E8F0),
@@ -814,11 +613,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 imagePath,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    fallbackIcon,
-                    color: isSelected ? const Color(0xFF0058FF) : const Color(0xFF475569),
-                    size: 28,
-                  );
+                  return Icon(fallbackIcon, color: isSelected ? const Color(0xFF0058FF) : const Color(0xFF475569), size: 28);
                 },
               ),
             ),
@@ -857,6 +652,29 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: BottomNavigationBar(
         currentIndex: _currentNavIndex,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const RideHistoryScreen()));
+            return;
+          }
+          setState(() => _currentNavIndex = index);
+          if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+            ).then((_) {
+              if (mounted) setState(() => _currentNavIndex = 0);
+            });
+          }
+          if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const WalletScreen()),
+            ).then((_) {
+              if (mounted) setState(() => _currentNavIndex = 0);
+            });
+          }
+        },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         selectedItemColor: const Color(0xFF0058FF),
@@ -870,17 +688,116 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_rounded), label: 'Wallet'),
           BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
         ],
-        onTap: (index) {
-          setState(() {
-            _currentNavIndex = index;
-          });
-          if (index == 1) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const RideHistoryScreen()));
-          } else if (index == 2) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const WalletScreen()));
-          } else if (index == 3) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const UserProfileScreen()));
-          }
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// 🚀 ప్రత్యేక ఐసోలేటెడ్ గూగుల్ మ్యాప్ విడ్జెట్ (ISOLATED ZERO-LAG MAP COMPONENT)
+// ============================================================================
+class FastGoogleMapView extends StatefulWidget {
+  final LatLng initialCenter;
+
+  const FastGoogleMapView({
+    super.key,
+    required this.initialCenter,
+  });
+
+  @override
+  State<FastGoogleMapView> createState() => _FastGoogleMapViewState();
+}
+
+class _FastGoogleMapViewState extends State<FastGoogleMapView> {
+  GoogleMapController? _controller;
+  Set<Marker> _markers = {};
+  StreamSubscription<QuerySnapshot>? _driversSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenToDrivers();
+  }
+
+  @override
+  void dispose() {
+    _driversSubscription?.cancel();
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  /// హోమ్ స్క్రీన్ నుండి కెమెరా లొకేషన్‌ను స్మూత్‌గా మూవ్ చేసే మెథడ్
+  void animateToLocation(LatLng target) {
+    _controller?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: target, zoom: 16.0),
+      ),
+    );
+  }
+
+  /// డ్రైవర్లను బ్యాక్‌గ్రౌండ్‌లో వింటూ కేవలం ఈ మ్యాప్ లోపల మాత్రమే అప్‌డేట్ చేయడం
+  void _listenToDrivers() {
+    _driversSubscription = FirebaseFirestore.instance
+        .collection('drivers')
+        .where('isOnline', isEqualTo: true)
+        .where('isAvailable', isEqualTo: true)
+        .snapshots()
+        .listen((snapshot) {
+      final Set<Marker> newMarkers = {};
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        final lat = (data['latitude'] as num?)?.toDouble() ?? widget.initialCenter.latitude;
+        final lng = (data['longitude'] as num?)?.toDouble() ?? widget.initialCenter.longitude;
+        final vehicleType = data['vehicleType'] ?? 'Bike';
+
+        double hue = BitmapDescriptor.hueGreen;
+        if (vehicleType == 'Cab') hue = BitmapDescriptor.hueViolet;
+        if (vehicleType == 'Auto') hue = BitmapDescriptor.hueOrange;
+        if (vehicleType == 'Parcel') hue = BitmapDescriptor.hueCyan;
+
+        newMarkers.add(
+          Marker(
+            markerId: MarkerId(doc.id),
+            position: LatLng(lat, lng),
+            icon: BitmapDescriptor.defaultMarkerWithHue(hue),
+            flat: true,
+          ),
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          _markers = newMarkers;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: GoogleMap(
+        initialCameraPosition: CameraPosition(
+          target: widget.initialCenter,
+          zoom: 15.5,
+        ),
+        myLocationEnabled: true, // నేటివ్ బ్లూ డాట్ - జీరో ల్యాగ్
+        myLocationButtonEnabled: false,
+        zoomControlsEnabled: false,
+        compassEnabled: false,
+        mapToolbarEnabled: false,
+        trafficEnabled: false, // స్పీడ్ పెంచడానికి ట్రాఫిక్ గ్రాఫిక్స్ ఆఫ్
+        buildingsEnabled: false, // 3D బిల్డింగ్స్ ఆఫ్ (హ్యాంగ్ అవ్వదు)
+        indoorViewEnabled: false,
+        rotateGesturesEnabled: true,
+        scrollGesturesEnabled: true,
+        zoomGesturesEnabled: true,
+        tiltGesturesEnabled: false,
+        padding: const EdgeInsets.only(bottom: 230, top: 90),
+        markers: _markers,
+        onMapCreated: (controller) {
+          _controller = controller;
         },
       ),
     );
