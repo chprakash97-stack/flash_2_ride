@@ -60,12 +60,13 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // ----------------------------------------------------
-  // 1. Send OTP via Firebase Phone Auth
+  // 1. Send OTP (Android Auto-Verification & Direct Flow)
   // ----------------------------------------------------
   Future<bool> sendOtp(
     String phoneNumber, {
     required Function(String verificationId) onCodeSent,
     required Function(String error) onError,
+    Function()? onAutoVerified, // ఆటోమేటిక్‌గా లాగిన్ అయినప్పుడు UIకి తెలియజేయడానికి
   }) async {
     try {
       _isLoading = true;
@@ -88,26 +89,43 @@ class AuthProvider extends ChangeNotifier {
           forceResendingToken: _resendToken,
           timeout: const Duration(seconds: 60),
 
-          // Android లో Automatic SMS Detection జరిగినప్పుడు
+          // 1. ఆండ్రాయిడ్ ఆటోమేటిక్‌గా SMS రీడ్ చేసి డైరెక్ట్‌గా లాగిన్ చేసే మెథడ్ (Rapido Model)
           verificationCompleted: (PhoneAuthCredential credential) async {
             try {
               UserCredential userCredential = await _auth.signInWithCredential(credential);
               if (userCredential.user != null) {
                 await _saveOrFetchUser(userCredential.user!.uid, formattedPhoneNumber);
+                _isLoading = false;
+                notifyListeners();
+
+                // స్క్రీన్ ఆటోమేటిక్‌గా హోమ్ పేజీకి నావిగేట్ అవ్వడానికి కాల్‌బ్యాక్
+                if (onAutoVerified != null) {
+                  onAutoVerified();
+                }
               }
             } catch (e) {
-              debugPrint("Auto verification error: $e");
+              _isLoading = false;
+              notifyListeners();
+              debugPrint("Auto verification sign-in error: $e");
             }
           },
 
-          // Verification Error వచ్చినప్పుడు
+          // 2. వెరిఫికేషన్ ఫెయిల్ అయినప్పుడు
           verificationFailed: (FirebaseAuthException e) {
             _isLoading = false;
             notifyListeners();
-            onError(e.message ?? "Phone verification failed");
+            String errorMsg = "Phone verification failed. Please try again.";
+            if (e.code == 'invalid-phone-number') {
+              errorMsg = "Please enter a valid phone number.";
+            } else if (e.code == 'too-many-requests') {
+              errorMsg = "Too many attempts. Please try again after some time.";
+            } else if (e.message != null) {
+              errorMsg = e.message!;
+            }
+            onError(errorMsg);
           },
 
-          // SMS విజయవంతంగా వెళ్ళినప్పుడు
+          // 3. SMS పంపగానే OTP స్క్రీన్‌కి verificationId ఇచ్చే భాగం
           codeSent: (String verificationId, int? resendToken) {
             _verificationId = verificationId;
             _resendToken = resendToken;
@@ -116,8 +134,11 @@ class AuthProvider extends ChangeNotifier {
             onCodeSent(verificationId);
           },
 
+          // 4. SMS ఆటో-డిటెక్షన్ టైమౌట్ అయినప్పుడు
           codeAutoRetrievalTimeout: (String verificationId) {
             _verificationId = verificationId;
+            _isLoading = false;
+            notifyListeners();
           },
         );
         return true;
@@ -131,7 +152,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // ----------------------------------------------------
-  // 2. Verify OTP Code
+  // 2. Verify OTP Code (యూజర్ మాన్యువల్‌గా ఎంటర్ చేసినప్పుడు)
   // ----------------------------------------------------
   Future<bool> verifyOtp(String otp, String phone) async {
     try {
