@@ -6,10 +6,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-// మీరు క్రియేట్ చేసిన సపరేట్ మ్యాప్ ఫైల్ ఇంపోర్ట్
+// మ్యాప్ వ్యూ ఫైల్
 import 'fast_google_map_view.dart';
 
-// Screens & Views Imports
+// ఇతర స్క్రీన్స్ & వ్యూస్ ఇంపోర్ట్స్
 import '../../views/history/ride_history_screen.dart';
 import '../../views/payment/payment_methods_screen.dart';
 import '../../views/support/help_support_screen.dart';
@@ -21,8 +21,8 @@ import '../features/power_pass_screen.dart';
 import '../features/wallet_screen.dart';
 import '../location/destination_search_screen.dart';
 
-// ఒకవేళ పార్సెల్ కోసం ప్రత్యేకమైన స్క్రీన్ ఉంటే ఇక్కడ ఇంపోర్ట్ చేసుకోండి:
-// import '../parcel/parcel_destination_screen.dart';
+// ఒకవేళ పార్సెల్ కోసం వేరే స్క్రీన్ ఉంటే ఇక్కడ ఇంపోర్ట్ చేయండి (ఉదాహరణకు):
+// import '../parcel/parcel_booking_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -50,12 +50,12 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingLocation = true;
   StreamSubscription<Position>? _positionSubscription;
 
-  // డిఫాల్ట్ వెహికల్స్ లిస్ట్ (ఇక్కడ పార్సెల్ కి ఇమేజ్ బదులు ఐకాన్ ఫెయిల్ అయితే హ్యాండిల్ అయ్యేలా సెట్ చేయబడింది)
+  // డిఫాల్ట్ వెహికల్స్ లిస్ట్
   final List<Map<String, dynamic>> _defaultVehicles = [
     {'name': 'Bike', 'image': 'assets/images/vehicle_bike.png', 'icon': Icons.two_wheeler_rounded, 'eta': '2 mins'},
     {'name': 'Auto', 'image': 'assets/images/vehicle_auto.png', 'icon': Icons.electric_rickshaw_rounded, 'eta': '4 mins'},
     {'name': 'Cab', 'image': 'assets/images/vehicle_cab.png', 'icon': Icons.local_taxi_rounded, 'eta': '6 mins'},
-    {'name': 'Parcel', 'image': 'assets/images/parcel/parcel_box.png', 'icon': Icons.inventory_2_rounded, 'eta': 'Instant'},
+    {'name': 'Parcel', 'image': 'assets/images/vehicle_parcel.png', 'icon': Icons.inventory_2_rounded, 'eta': 'Instant'}, // ఇమేజ్ పాత్ సరిచూడబడింది
   ];
 
   @override
@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  /// కస్టమర్ మూవ్ అవుతున్నప్పుడు లైవ్ ట్రాకింగ్
+  /// లైవ్ లొకేషన్ ట్రాకింగ్
   Future<void> _startLiveLocationTracking() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -139,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// వెహికల్ లేదా పార్సెల్ సెలెక్ట్ చేసి "Where to?" నొక్కినప్పుడు తగిన స్క్రీన్‌కి నావిగేట్ అవ్వడం
+  /// **ముఖ్యమైన నావిగేషన్ లాజిక్**: పార్సెల్ లేదా బైక్/ఆటో/కార్ నొక్కినప్పుడు ఏ స్క్రీన్‌కి వెళ్లాలో నిర్ణయించే ఫంక్షన్
   Future<void> _handleWhereToClick() async {
     try {
       final currentFreshPos = await Geolocator.getCurrentPosition(
@@ -150,9 +150,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (!mounted) return;
 
-    // లాజిక్: పార్సెల్ సెలెక్ట్ చేసి ఉంటే పార్సెల్ స్క్రీన్ లేదా డెస్టినేషన్ స్క్రీన్‌కి పార్సెల్ మోడ్‌లో వెళ్తుంది
     if (_selectedVehicle == 'Parcel') {
-      Navigator.push(
+      // ఇక్కడ పార్సెల్ కోసం ప్రత్యేకమైన స్క్రీన్‌కి నావిగేట్ చేయవచ్చు
+      // ఉదాహరణకు: Navigator.push(context, MaterialPageRoute(builder: (context) => const ParcelBookingScreen()));
+      
+otor: Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => const DestinationSearchScreen(
@@ -161,12 +163,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     } else {
-      // బైక్, ఆటో, కార్ లకోసం తగిన వెహికల్ టైప్‌తో సెర్చ్ స్క్రీన్ ఓపెన్ అవుతుంది
+      // బైక్, ఆటో, కార్ లకోసం సాధారణ డెస్టినేషన్ సెర్చ్ స్క్రీన్ ఓపెన్ అవుతుంది
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => DestinationSearchScreen(
-            selectedVehicle: _selectedVehicle,
+            selectedVehicle: _selectedVehicle, // ఏ వెహికల్ సెలెక్ట్ అయిందో ఆ నేమ్ పాస్ అవుతుంది
           ),
         ),
       );
@@ -458,7 +460,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 12),
 
           GestureDetector(
-            onTap: _handleWhereToClick,
+            onTap: _handleWhereToClick, // ఇక్కడ క్లిక్ చేస్తే పైన ఉన్న _handleWhereToClick నావిగేషన్ లాజిక్ రన్ అవుతుంది
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
@@ -510,7 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (name == 'Cab') icon = Icons.local_taxi_rounded;
                   if (name == 'Parcel') {
                     icon = Icons.inventory_2_rounded;
-                    image = 'assets/images/parcel/parcel_box.png';
+                    image = 'assets/images/vehicle_parcel.png'; // సరియైన అసెట్ ఇమేజ్ పాత్
                   }
 
                   return {
@@ -546,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedVehicle = name;
+          _selectedVehicle = name; // ఇక్కడ బైక్, ఆటో, కార్ లేదా పార్సెల్ సెలెక్ట్ అవుతుంది
         });
       },
       child: Column(
@@ -570,7 +572,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 imagePath,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
-                  // ఒకవేళ అసెట్ ఇమేజ్ లోడ్ కాకపోతే డిఫాల్ట్ ఐకాన్ పర్ఫెక్ట్‌గా డిస్ప్లే అవుతుంది
+                  // ఒకవేళ ఇమేజ్ అసెట్ దొరకకపోతే ఈ ఐకాన్ కనిపిస్తుంది
                   return Icon(fallbackIcon, color: isSelected ? const Color(0xFF0058FF) : const Color(0xFF475569), size: 28);
                 },
               ),
