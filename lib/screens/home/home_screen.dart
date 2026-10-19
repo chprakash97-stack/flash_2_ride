@@ -20,7 +20,8 @@ import '../features/refer_earn_screen.dart';
 import '../features/power_pass_screen.dart';
 import '../features/wallet_screen.dart';
 import '../location/destination_search_screen.dart';
-// ఒకవేళ పార్సెల్ కి వేరే స్క్రీన్ ఉంటే ఇక్కడ ఇంపోర్ట్ చేసుకోండి (ఉదాహరణకు):
+
+// ఒకవేళ పార్సెల్ కోసం ప్రత్యేకమైన స్క్రీన్ ఉంటే ఇక్కడ ఇంపోర్ట్ చేసుకోండి:
 // import '../parcel/parcel_destination_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -49,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingLocation = true;
   StreamSubscription<Position>? _positionSubscription;
 
+  // డిఫాల్ట్ వెహికల్స్ లిస్ట్ (ఇక్కడ పార్సెల్ కి ఇమేజ్ బదులు ఐకాన్ ఫెయిల్ అయితే హ్యాండిల్ అయ్యేలా సెట్ చేయబడింది)
   final List<Map<String, dynamic>> _defaultVehicles = [
     {'name': 'Bike', 'image': 'assets/images/vehicle_bike.png', 'icon': Icons.two_wheeler_rounded, 'eta': '2 mins'},
     {'name': 'Auto', 'image': 'assets/images/vehicle_auto.png', 'icon': Icons.electric_rickshaw_rounded, 'eta': '4 mins'},
@@ -68,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  /// కస్టమర్ మూవ్ అవుతున్నప్పుడు లైవ్ ట్రాకింగ్ (హ్యాంగ్ అవ్వకుండా 50m ఫిల్టర్‌తో)
+  /// కస్టమర్ మూవ్ అవుతున్నప్పుడు లైవ్ ట్రాకింగ్
   Future<void> _startLiveLocationTracking() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -137,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// "Where to?" లేదా వెహికల్/పార్సెల్ క్లిక్ చేసినప్పుడు తగిన స్క్రీన్‌కి నావిగేట్ అవ్వడం
+  /// వెహికల్ లేదా పార్సెల్ సెలెక్ట్ చేసి "Where to?" నొక్కినప్పుడు తగిన స్క్రీన్‌కి నావిగేట్ అవ్వడం
   Future<void> _handleWhereToClick() async {
     try {
       final currentFreshPos = await Geolocator.getCurrentPosition(
@@ -148,18 +150,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (!mounted) return;
 
-    // ఒకవేళ పార్సెల్ సెలెక్ట్ చేసి ఉంటే, పార్సెల్ కి సంబంధించిన స్క్రీన్‌కి వెళ్ళాలి
+    // లాజిక్: పార్సెల్ సెలెక్ట్ చేసి ఉంటే పార్సెల్ స్క్రీన్ లేదా డెస్టినేషన్ స్క్రీన్‌కి పార్సెల్ మోడ్‌లో వెళ్తుంది
     if (_selectedVehicle == 'Parcel') {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => DestinationSearchScreen(
-            selectedVehicle: 'Parcel', // లేదా మీ పార్సెల్ స్పెసిఫిక్ స్క్రీన్
+          builder: (context) => const DestinationSearchScreen(
+            selectedVehicle: 'Parcel',
           ),
         ),
       );
     } else {
-      // బైక్, ఆటో, కారు లకోసం నార్మల్ సెర్చ్ స్క్రీన్
+      // బైక్, ఆటో, కార్ లకోసం తగిన వెహికల్ టైప్‌తో సెర్చ్ స్క్రీన్ ఓపెన్ అవుతుంది
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -543,7 +545,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return GestureDetector(
       onTap: () {
-        setState(() => _selectedVehicle = name);
+        setState(() {
+          _selectedVehicle = name;
+        });
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -566,6 +570,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 imagePath,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
+                  // ఒకవేళ అసెట్ ఇమేజ్ లోడ్ కాకపోతే డిఫాల్ట్ ఐకాన్ పర్ఫెక్ట్‌గా డిస్ప్లే అవుతుంది
                   return Icon(fallbackIcon, color: isSelected ? const Color(0xFF0058FF) : const Color(0xFF475569), size: 28);
                 },
               ),
