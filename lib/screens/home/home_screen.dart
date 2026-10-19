@@ -21,9 +21,6 @@ import '../features/power_pass_screen.dart';
 import '../features/wallet_screen.dart';
 import '../location/destination_search_screen.dart';
 
-// ఒకవేళ పార్సెల్ కోసం వేరే స్క్రీన్ ఉంటే ఇక్కడ ఇంపోర్ట్ చేయండి (ఉదాహరణకు):
-// import '../parcel/parcel_booking_screen.dart';
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -55,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     {'name': 'Bike', 'image': 'assets/images/vehicle_bike.png', 'icon': Icons.two_wheeler_rounded, 'eta': '2 mins'},
     {'name': 'Auto', 'image': 'assets/images/vehicle_auto.png', 'icon': Icons.electric_rickshaw_rounded, 'eta': '4 mins'},
     {'name': 'Cab', 'image': 'assets/images/vehicle_cab.png', 'icon': Icons.local_taxi_rounded, 'eta': '6 mins'},
-    {'name': 'Parcel', 'image': 'assets/images/vehicle_parcel.png', 'icon': Icons.inventory_2_rounded, 'eta': 'Instant'}, // ఇమేజ్ పాత్ సరిచూడబడింది
+    {'name': 'Parcel', 'image': 'assets/images/vehicle_parcel.png', 'icon': Icons.inventory_2_rounded, 'eta': 'Instant'},
   ];
 
   @override
@@ -139,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// **ముఖ్యమైన నావిగేషన్ లాజిక్**: పార్సెల్ లేదా బైక్/ఆటో/కార్ నొక్కినప్పుడు ఏ స్క్రీన్‌కి వెళ్లాలో నిర్ణయించే ఫంక్షన్
+  /// **నావిగేషన్ లాజిక్**: పార్సెల్ లేదా బైక్/ఆటో/కార్ నొక్కినప్పుడు తగిన స్క్రీన్‌కి నావిగేట్ అవ్వడం
   Future<void> _handleWhereToClick() async {
     try {
       final currentFreshPos = await Geolocator.getCurrentPosition(
@@ -151,10 +148,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
 
     if (_selectedVehicle == 'Parcel') {
-      // ఇక్కడ పార్సెల్ కోసం ప్రత్యేకమైన స్క్రీన్‌కి నావిగేట్ చేయవచ్చు
-      // ఉదాహరణకు: Navigator.push(context, MaterialPageRoute(builder: (context) => const ParcelBookingScreen()));
-      
-otor: Navigator.push(
+      // పార్సెల్ సెలెక్ట్ చేసినప్పుడు వెళ్లే స్క్రీన్
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => const DestinationSearchScreen(
@@ -163,12 +158,12 @@ otor: Navigator.push(
         ),
       );
     } else {
-      // బైక్, ఆటో, కార్ లకోసం సాధారణ డెస్టినేషన్ సెర్చ్ స్క్రీన్ ఓపెన్ అవుతుంది
+      // బైక్, ఆటో, కార్ లకోసం డెస్టినేషన్ సెర్చ్ స్క్రీన్
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => DestinationSearchScreen(
-            selectedVehicle: _selectedVehicle, // ఏ వెహికల్ సెలెక్ట్ అయిందో ఆ నేమ్ పాస్ అవుతుంది
+            selectedVehicle: _selectedVehicle,
           ),
         ),
       );
@@ -460,7 +455,7 @@ otor: Navigator.push(
           const SizedBox(height: 12),
 
           GestureDetector(
-            onTap: _handleWhereToClick, // ఇక్కడ క్లిక్ చేస్తే పైన ఉన్న _handleWhereToClick నావిగేషన్ లాజిక్ రన్ అవుతుంది
+            onTap: _handleWhereToClick,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
@@ -512,7 +507,7 @@ otor: Navigator.push(
                   if (name == 'Cab') icon = Icons.local_taxi_rounded;
                   if (name == 'Parcel') {
                     icon = Icons.inventory_2_rounded;
-                    image = 'assets/images/vehicle_parcel.png'; // సరియైన అసెట్ ఇమేజ్ పాత్
+                    image = 'assets/images/vehicle_parcel.png';
                   }
 
                   return {
@@ -548,7 +543,7 @@ otor: Navigator.push(
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedVehicle = name; // ఇక్కడ బైక్, ఆటో, కార్ లేదా పార్సెల్ సెలెక్ట్ అవుతుంది
+          _selectedVehicle = name;
         });
       },
       child: Column(
@@ -572,7 +567,6 @@ otor: Navigator.push(
                 imagePath,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
-                  // ఒకవేళ ఇమేజ్ అసెట్ దొరకకపోతే ఈ ఐకాన్ కనిపిస్తుంది
                   return Icon(fallbackIcon, color: isSelected ? const Color(0xFF0058FF) : const Color(0xFF475569), size: 28);
                 },
               ),
