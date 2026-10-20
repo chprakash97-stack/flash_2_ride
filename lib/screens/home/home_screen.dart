@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,10 +6,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-// మీరు క్రియేట్ చేసిన సపరేట్ మ్యాప్ ఫైల్ ఇంపోర్ట్
+// మ్యాప్ వ్యూ ఫైల్
 import 'fast_google_map_view.dart';
 
-// Screens & Views Imports
+// ఇతర స్క్రీన్స్ & వ్యూస్ ఇంపోర్ట్స్
 import '../../views/history/ride_history_screen.dart';
 import '../../views/payment/payment_methods_screen.dart';
 import '../../views/support/help_support_screen.dart';
@@ -47,11 +47,12 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingLocation = true;
   StreamSubscription<Position>? _positionSubscription;
 
+  // డిఫాల్ట్ వెహికల్స్ లిస్ట్
   final List<Map<String, dynamic>> _defaultVehicles = [
     {'name': 'Bike', 'image': 'assets/images/vehicle_bike.png', 'icon': Icons.two_wheeler_rounded, 'eta': '2 mins'},
     {'name': 'Auto', 'image': 'assets/images/vehicle_auto.png', 'icon': Icons.electric_rickshaw_rounded, 'eta': '4 mins'},
     {'name': 'Cab', 'image': 'assets/images/vehicle_cab.png', 'icon': Icons.local_taxi_rounded, 'eta': '6 mins'},
-    {'name': 'Parcel', 'image': 'assets/images/parcel/parcel_box.png', 'icon': Icons.inventory_2_rounded, 'eta': 'Instant'},
+    {'name': 'Parcel', 'image': 'assets/images/vehicle_parcel.png', 'icon': Icons.inventory_2_rounded, 'eta': 'Instant'},
   ];
 
   @override
@@ -66,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  /// కస్టమర్ మూవ్ అవుతున్నప్పుడు లైవ్ ట్రాకింగ్ (హ్యాంగ్ అవ్వకుండా 50m ఫిల్టర్‌తో)
+  /// లైవ్ లొకేషన్ ట్రాకింగ్
   Future<void> _startLiveLocationTracking() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -89,13 +90,11 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      // 1. ప్రారంభ స్థానం తీసుకోవడం
       final initialPos = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
       _updateLocationData(initialPos.latitude, initialPos.longitude, animateCamera: true);
 
-      // 2. కస్టమర్ ప్రయాణిస్తున్నప్పుడు ప్రతి 50 మీటర్లకి ఒకసారి మాత్రమే అప్డేట్ అవుతుంది (జీరో హ్యాంగ్)
       _positionSubscription = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
@@ -137,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// కస్టమర్ 2 కి.మీ దూరం ప్రయాణించి "Where to?" నొక్కినప్పుడు ఆ క్షణపు తాజా GPS లొకేషన్ తీసుకోవడం
+  /// **నావిగేషన్ లాజిక్**: పార్సెల్ లేదా బైక్/ఆటో/కార్ నొక్కినప్పుడు తగిన స్క్రీన్‌కి నావిగేట్ అవ్వడం
   Future<void> _handleWhereToClick() async {
     try {
       final currentFreshPos = await Geolocator.getCurrentPosition(
@@ -148,14 +147,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (!mounted) return;
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DestinationSearchScreen(
-          selectedVehicle: _selectedVehicle,
+    if (_selectedVehicle == 'Parcel') {
+      // పార్సెల్ సెలెక్ట్ చేసినప్పుడు వెళ్లే స్క్రీన్
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DestinationSearchScreen(
+            selectedVehicle: 'Parcel',
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      // బైక్, ఆటో, కార్ లకోసం డెస్టినేషన్ సెర్చ్ స్క్రీన్
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DestinationSearchScreen(
+            selectedVehicle: _selectedVehicle,
+          ),
+        ),
+      );
+    }
   }
 
   /// Logout Action
@@ -191,15 +203,12 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: _buildDrawer(currentUser),
       body: Stack(
         children: [
-          // 1. LAYER 1: సపరేట్ ఫైల్ నుండి గూగుల్ మ్యాప్ (100% Zero-Lag)
           Positioned.fill(
             child: FastGoogleMapView(
               key: _mapKey,
               initialCenter: _nelloreDefault,
             ),
           ),
-
-          // 2. LAYER 2: కరెంట్ లొకేషన్ బబుల్
           Positioned(
             top: MediaQuery.of(context).padding.top + 85,
             left: 20,
@@ -249,8 +258,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-
-          // రీ-సెంటర్ బటన్ (నొక్కితే కస్టమర్ తాజా లొకేషన్‌కి మ్యాప్ వస్తుంది)
           Positioned(
             top: MediaQuery.of(context).padding.top + 85,
             right: 16,
@@ -271,16 +278,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-
-          // 3. LAYER 3: హెడర్ బార్
           Positioned(
             top: 0,
             left: 0,
             right: 0,
             child: _buildTopHeader(currentUser?.uid),
           ),
-
-          // 4. LAYER 4: "Where to?" & వాహనాల సెలెక్టర్ కార్డ్
           Positioned(
             left: 14,
             right: 14,
@@ -293,7 +296,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Drawer Widget
   Widget _buildDrawer(User? currentUser) {
     return Drawer(
       child: currentUser == null
@@ -416,7 +418,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Where To & Vehicles Card
   Widget _buildWhereToAndVehiclesCard() {
     return Container(
       width: double.infinity,
@@ -432,13 +433,17 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.search_rounded, color: Color(0xFF0058FF), size: 30),
-              SizedBox(width: 8),
+              Icon(
+                _selectedVehicle == 'Parcel' ? Icons.inventory_2_rounded : Icons.search_rounded,
+                color: const Color(0xFF0058FF),
+                size: 30,
+              ),
+              const SizedBox(width: 8),
               Text(
-                'Where to?',
-                style: TextStyle(
+                _selectedVehicle == 'Parcel' ? 'Send a Parcel' : 'Where to?',
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w900,
                   color: Color(0xFF0F172A),
@@ -450,7 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 12),
 
           GestureDetector(
-            onTap: _handleWhereToClick, // తాజా కరెంట్ లొకేషన్‌తో సెర్చ్ స్క్రీన్ ఓపెన్ అవుతుంది
+            onTap: _handleWhereToClick,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
@@ -502,7 +507,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (name == 'Cab') icon = Icons.local_taxi_rounded;
                   if (name == 'Parcel') {
                     icon = Icons.inventory_2_rounded;
-                    image = 'assets/images/parcel/parcel_box.png';
+                    image = 'assets/images/vehicle_parcel.png';
                   }
 
                   return {
@@ -532,12 +537,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Vehicle Item Widget
   Widget _buildVehicleItem(String name, String imagePath, IconData fallbackIcon, {String? eta}) {
     final isSelected = _selectedVehicle == name;
 
     return GestureDetector(
-      onTap: () => setState(() => _selectedVehicle = name),
+      onTap: () {
+        setState(() {
+          _selectedVehicle = name;
+        });
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -583,7 +591,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Top Header
   Widget _buildTopHeader(String? userId) {
     const Color brandRoyalBlue = Color(0xFF0058FF);
 
@@ -671,7 +678,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Bottom Navigation Bar
   Widget _buildBottomNavigationBar() {
     return Container(
       decoration: BoxDecoration(

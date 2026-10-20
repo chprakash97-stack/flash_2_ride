@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -23,6 +23,15 @@ class _OtpScreenState extends State<OtpScreen> {
   void initState() {
     super.initState();
     _startTimer();
+
+    // స్క్రీన్ ఓపెన్ అయ్యాక AuthProvider స్టేటస్ గమనించి, 
+    // బ్యాక్‌గ్రౌండ్‌లోనే ఆటో-వెరిఫై పూర్తయితే వెంటనే నెక్స్ట్ స్క్రీన్‌కి తీసుకెళ్లడం
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (authProvider.isLoggedIn) {
+        _navigateToProfileSetup();
+      }
+    });
   }
 
   void _startTimer() {
@@ -37,6 +46,16 @@ class _OtpScreenState extends State<OtpScreen> {
     });
   }
 
+  // నెక్స్ట్ స్క్రీన్‌కి వెళ్లే కామన్ ఫంక్షన్
+  void _navigateToProfileSetup() {
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const ProfileSetupScreen()),
+    );
+  }
+
+  // యూజర్ స్వయంగా బటన్ క్లిక్ చేసినప్పుడు వెరిఫై చేయడం
   Future<void> _handleVerify() async {
     final otp = _controllers.map((c) => c.text.trim()).join();
     if (otp.length == 6) {
@@ -47,10 +66,7 @@ class _OtpScreenState extends State<OtpScreen> {
       if (!mounted) return;
 
       if (isSuccess) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const ProfileSetupScreen()),
-        );
+        _navigateToProfileSetup();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -69,6 +85,7 @@ class _OtpScreenState extends State<OtpScreen> {
     }
   }
 
+  // రీసెండ్ ఓటీపీ (ఇందులో onAutoVerified జతచేయబడింది)
   void _resendOtp() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     authProvider.sendOtp(
@@ -92,6 +109,10 @@ class _OtpScreenState extends State<OtpScreen> {
           ),
         );
       },
+      // SMS రాగానే ఆటోమేటిక్‌గా వెరిఫై అయి నెక్స్ట్ స్క్రీన్‌కి వెళ్తుంది
+      onAutoVerified: () {
+        _navigateToProfileSetup();
+      },
     );
   }
 
@@ -109,7 +130,11 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // AuthProvider స్టేట్ గమనిస్తుంది (ఒకవేళ బ్యాక్‌గ్రౌండ్‌లో లాగిన్ అయితే వెంటనే వెళ్తుంది)
     final authProvider = Provider.of<AuthProvider>(context);
+    if (authProvider.isLoggedIn) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _navigateToProfileSetup());
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF0645D8),
